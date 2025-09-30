@@ -98,17 +98,34 @@ class ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     return DoublePressBackWidget(
       message: languages.lblCloseAppMsg,
       child: Scaffold(
         appBar: appBarWidget(
-          [
-            languages.providerHome,
-            languages.lblBooking,
-            languages.realEstate,
-            languages.hintAddService,
-            if (appConfigurationStore.isEnableChat) languages.lblChat,
-          ][currentIndex],
+          '',
+          titleWidget: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (currentIndex == 0) ...[
+                Image.asset(
+                  appLogo,
+                  height: 60,
+                  width: 60,
+                ),
+              ],
+              Text(
+                [
+                  languages.providerHome,
+                  languages.lblBooking,
+                  languages.realEstate,
+                  languages.hintAddService,
+                  if (appConfigurationStore.isEnableChat) languages.lblChat,
+                ][currentIndex],
+                style: boldTextStyle(color: Colors.white, size: 15),
+              ),
+            ],
+          ),
           color: primaryColor,
           textColor: Colors.white,
           showBack: false,
@@ -242,7 +259,7 @@ class ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
                   selectedIcon: builder.iconImage(color: context.primaryColor),
                   label: languages.realEstate,
                 ),
-                 NavigationDestination(
+                NavigationDestination(
                   icon: service.iconImage(color: appTextSecondaryColor),
                   selectedIcon: service.iconImage(color: context.primaryColor),
                   label: languages.hintAddService,

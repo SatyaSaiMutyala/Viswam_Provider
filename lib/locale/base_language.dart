@@ -237,6 +237,8 @@ abstract class Languages {
 
   String get btnVerifyId;
 
+  String get btnReferal;
+
   String get btnSubscription;
 
   String get confirmationUpload;
@@ -481,6 +483,8 @@ abstract class Languages {
 
   String get lblDesignation;
 
+  String get lblrefid;
+
   String get lblHandymanIsOffline;
 
   String get lblDoYouWantToRestore;
@@ -568,6 +572,10 @@ abstract class Languages {
   String get lblHourly;
 
   String get noBookingTitle;
+
+  String get noRealEstate;
+
+  String get subNorealEstate;
 
   String get noBookingSubTitle;
 

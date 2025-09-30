@@ -239,7 +239,7 @@ class LanguageEn extends Languages {
   String get hintAddService => 'Add Service';
 
   @override
-  String get hintServiceName => 'Service Name';
+  String get hintServiceName => 'Worker Name';
 
   @override
   String get hintSelectCategory => 'Select Category';
@@ -402,6 +402,9 @@ class LanguageEn extends Languages {
 
   @override
   String get lblSignupSubtitle => "Create Your Account for Better Experience";
+  
+  @override
+  String get lblrefid => "Referal Id";
 
   @override
   String get lblSignup => "Sign Up";
@@ -843,6 +846,12 @@ class LanguageEn extends Languages {
 
   @override
   String get noBookingTitle => "No Booking Found";
+  
+  @override
+  String get noRealEstate => "No Real Estate";
+  
+  @override
+  String get subNorealEstate => "Looks like your haven't add your Real Estate services yet";
 
   @override
   String get noBookingSubTitle => "Looks like your customer haven't book your services yet";
@@ -1741,6 +1750,9 @@ class LanguageEn extends Languages {
 
   @override
   String get btnSubscription => 'Subscription';
+
+  @override
+  String get btnReferal => 'Refer & Earn';
 
   @override
   String get paymentSuccess => 'Payment Success';

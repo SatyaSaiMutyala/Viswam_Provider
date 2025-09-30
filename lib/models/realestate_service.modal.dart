@@ -2,6 +2,7 @@ class RealEstateServiceModel {
   int id;
   int providerId;
   String propertyType;
+  String? type;
   String title;
   String location;
   int areaSqfeet;
@@ -19,6 +20,7 @@ class RealEstateServiceModel {
   RealEstateServiceModel({
     required this.id,
     required this.providerId,
+    this.type,
     required this.propertyType,
     required this.title,
     required this.location,
@@ -39,6 +41,7 @@ class RealEstateServiceModel {
       id: json['id'],
       providerId: json['provider_id'],
       propertyType: json['property_type'] ?? '',
+      type: json['type'] ?? '',
       title: json['title'] ?? '',
       location: json['location'] ?? '',
       areaSqfeet: json['area_sqfeet'] ?? 0,

@@ -18,6 +18,7 @@ import 'package:nb_utils/nb_utils.dart';
 
 import '../../components/app_widgets.dart';
 import '../../components/empty_error_state_widget.dart';
+import '../components/banner_carousel_screen.dart';
 import '../components/upcoming_booking_component.dart';
 
 class ProviderHomeFragment extends StatefulWidget {
@@ -128,6 +129,7 @@ class _ProviderHomeFragmentState extends State<ProviderHomeFragment> {
                     _buildHeaderWidget(snap.data!),
                     TodayCashComponent(totalCashInHand: snap.data!.totalCashInHand.validate()),
                     TotalComponent(snap: snap.data!),
+                    BannerCarouselSlider(),
                     ChartComponent(),
                     HandymanRecentlyOnlineComponent(images: snap.data!.onlineHandyman.validate()),
                     // HandymanListComponent(

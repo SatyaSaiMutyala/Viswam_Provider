@@ -395,7 +395,7 @@ class _AddPromotionalBannerScreenState extends State<AddPromotionalBannerScreen>
       PhonePeServices peServices = PhonePeServices(
         paymentSetting: selectedPaymentSetting!,
         totalAmount: totalAmount.toDouble(),
-        bookingId: appStore.userId.validate().toInt(), //TODO: set banner id if possible
+        bookingId: appStore.userId.validate().toInt(),
         onComplete: (res) {
           log('RES: $res');
           savePay(
@@ -540,7 +540,7 @@ class _AddPromotionalBannerScreenState extends State<AddPromotionalBannerScreen>
                             minLines: 3,
                             maxLines: 10,
                             maxLength: 120,
-                            enableChatGPT: appConfigurationStore.chatGPTStatus,
+                            // enableChatGPT: appConfigurationStore.chatGPTStatus,
                             promptFieldInputDecorationChatGPT: inputDecoration(context).copyWith(
                               hintText: languages.writeHere,
                               fillColor: context.scaffoldBackgroundColor,

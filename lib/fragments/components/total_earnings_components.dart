@@ -55,20 +55,20 @@ class TotalAmountsComponent extends StatelessWidget {
                 ],
               ),
             ).paddingOnly(bottom: 16),
-          Container(
-            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            margin: EdgeInsets.symmetric(horizontal: 16),
-            decoration: boxDecorationDefault(borderRadius: radius(), color: context.cardColor),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(languages.handyman, style: boldTextStyle(size: 12)).expand(),
-                4.width,
-                PriceWidget(price: paymentBreakdown.handymanEarned.toDouble(), color: royalBlue, size: 14),
-              ],
-            ),
-          ),
-          16.height,
+          // Container(
+          //   padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          //   margin: EdgeInsets.symmetric(horizontal: 16),
+          //   decoration: boxDecorationDefault(borderRadius: radius(), color: context.cardColor),
+          //   child: Row(
+          //     crossAxisAlignment: CrossAxisAlignment.start,
+          //     children: [
+          //       Text(languages.handyman, style: boldTextStyle(size: 12)).expand(),
+          //       4.width,
+          //       PriceWidget(price: paymentBreakdown.handymanEarned.toDouble(), color: royalBlue, size: 14),
+          //     ],
+          //   ),
+          // ),
+          // 16.height,
           Container(
             padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             margin: EdgeInsets.symmetric(horizontal: 16),

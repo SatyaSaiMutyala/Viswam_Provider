@@ -456,7 +456,7 @@ class BookingItemComponentState extends State<BookingItemComponent> {
                                 ),
                                 4.height,
                                 Text(
-                                  languages.handyman,
+                                  languages.provider,
                                   style: secondaryTextStyle(),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -634,57 +634,55 @@ class BookingItemComponentState extends State<BookingItemComponent> {
             Column(
               children: [
                 8.height,
-                AppButton(
-                  width: context.width(),
-                  child: Text(
-                    widget.bookingData.handyman!.isEmpty
-                        ? languages.lblAssign
-                        : languages.lblReassign,
-                    style: boldTextStyle(color: white),
+                if (widget.bookingData.handyman?.isEmpty ?? true)
+                  AppButton(
+                    width: context.width(),
+                    child: Text( languages.lblAssign,
+                      style: boldTextStyle(color: white),
+                    ),
+                    color: primaryColor,
+                    elevation: 0,
+                    // onTap: () {
+                    //   AssignHandymanScreen(
+                    //     bookingId: widget.bookingData.id,
+                    //     serviceAddressId: widget.bookingData.bookingAddressId,
+                    //     onUpdate: () {
+                    //       setState(() {});
+                    //       LiveStream().emit(LIVESTREAM_UPDATE_BOOKINGS);
+                    //     },
+                    //   ).launch(context);
+                    // },
+                    onTap: () async {
+                      if (appStore.isLoading) return;
+                      showConfirmDialogCustom(
+                        context,
+                        title: languages.lblAreYouSureYouWantToAssignToYourself,
+                        primaryColor: context.primaryColor,
+                        positiveText: languages.lblYes,
+                        negativeText: languages.lblCancel,
+                        onAccept: (c) async {
+                          var request = {
+                            CommonKeys.id: widget.bookingData.id,
+                            CommonKeys.handymanId: [appStore.userId.validate()],
+                          };
+
+                          appStore.setLoading(true);
+
+                          await assignBooking(request).then((res) async {
+                            appStore.setLoading(false);
+
+                            setState(() {});
+                            LiveStream().emit(LIVESTREAM_UPDATE_BOOKINGS);
+
+                            toast(res.message);
+                          }).catchError((e) {
+                            appStore.setLoading(false);
+                            toast(e.toString());
+                          });
+                        },
+                      );
+                    },
                   ),
-                  color: primaryColor,
-                  elevation: 0,
-                  // onTap: () {
-                  //   AssignHandymanScreen(
-                  //     bookingId: widget.bookingData.id,
-                  //     serviceAddressId: widget.bookingData.bookingAddressId,
-                  //     onUpdate: () {
-                  //       setState(() {});
-                  //       LiveStream().emit(LIVESTREAM_UPDATE_BOOKINGS);
-                  //     },
-                  //   ).launch(context);
-                  // },
-                  onTap: () async {
-                    if (appStore.isLoading) return;
-                    showConfirmDialogCustom(
-                      context,
-                      title: languages.lblAreYouSureYouWantToAssignToYourself,
-                      primaryColor: context.primaryColor,
-                      positiveText: languages.lblYes,
-                      negativeText: languages.lblCancel,
-                      onAccept: (c) async {
-                        var request = {
-                          CommonKeys.id: widget.bookingData.id,
-                          CommonKeys.handymanId: [appStore.userId.validate()],
-                        };
-
-                        appStore.setLoading(true);
-
-                        await assignBooking(request).then((res) async {
-                          appStore.setLoading(false);
-
-                          setState(() {});
-                          LiveStream().emit(LIVESTREAM_UPDATE_BOOKINGS);
-
-                          toast(res.message);
-                        }).catchError((e) {
-                          appStore.setLoading(false);
-                          toast(e.toString());
-                        });
-                      },
-                    );
-                  },
-                ),
               ],
             ).paddingAll(8),
         ],

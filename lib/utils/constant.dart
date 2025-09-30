@@ -99,6 +99,7 @@ const COUNTRY_ID = 'COUNTRY_ID';
 const STATE_ID = 'STATE_ID';
 const CITY_ID = 'CITY_ID';
 const ADDRESS = 'ADDRESS';
+const REFID = 'REFID';
 const UID = 'UID';
 const SERVICE_ADDRESS_ID = 'SERVICE_ADDRESS_ID';
 const PROVIDER_ID = 'PROVIDER_ID';

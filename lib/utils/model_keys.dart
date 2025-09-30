@@ -43,6 +43,7 @@ class UserKeys {
   static String whyChooseReason = 'reason';
   static String whyChooseTitle = 'title';
   static String isDefault = 'is_default';
+  static String refId = 'referal_id';
 }
 
 class BookingServiceKeys {
@@ -92,6 +93,7 @@ class AddServiceKey {
   static String serviceId = 'service_id';
   static String name = 'name';
   static String providerId = 'provider_id';
+  static String mainCatId = 'main_category_id';
   static String categoryId = 'category_id';
   static String subCategoryId = 'subcategory_id';
   static String type = 'type';
@@ -109,6 +111,26 @@ class AddServiceKey {
   static String visitType = 'visit_type';
   static String translations = 'translations';  
   static String isServiceRequest = 'is_service_request';
+  static String companyName = 'company_name';
+  static String phnNumber = 'phone_number';
+}
+
+class AddSubscriptionDetailsKey {
+  static String userId = 'user_id';
+  static String subscriptionId = 'subscription_id';
+  static String transactionId = 'transaction_id';
+  static String paymentStatus = 'payment_status';
+  static String totalAmount = 'total_amount';
+  static String gstAmount = 'gst_amount';
+}
+
+class AddDealerKey {
+  static String userId = 'user_id';
+  static String transactionId = 'transaction_id';
+  static String levelId = 'level_id';
+  static String paymentStatus = 'payment_status';
+  static String totalAmount = 'total_amount';
+  static String gstAmount = 'gst_amount';
 }
 
 class AddAddressKey {

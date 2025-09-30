@@ -113,20 +113,21 @@ class SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: primaryColor,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset(
-            appStore.isDarkMode ? splash_background : splash_light_background,
-            height: context.height(),
-            width: context.width(),
-            fit: BoxFit.cover,
-          ),
+          // Image.asset(
+          //   appStore.isDarkMode ? splash_background : splash_light_background,
+          //   height: context.height(),
+          //   width: context.width(),
+          //   fit: BoxFit.cover,
+          // ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(appLogo, height: 450, width: 450),
+              Image.asset(appLogo, height: 350, width: 350),
               32.height,
               // Text(APP_NAME,
               //     style: boldTextStyle(

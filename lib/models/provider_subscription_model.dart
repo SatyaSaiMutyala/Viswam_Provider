@@ -44,7 +44,9 @@ class ProviderSubscriptionModel {
     return ProviderSubscriptionModel(
       amount: json['amount'],
       endAt: json['end_at'],
-      planLimitation: json['plan_limitation'] != null ? PlanLimitation.fromJson(json['plan_limitation']) : null,
+      planLimitation: json['plan_limitation'] != null
+          ? PlanLimitation.fromJson(json['plan_limitation'])
+          : null,
       id: json['id'],
       identifier: json['identifier'],
       planId: json['plan_id'],
@@ -56,9 +58,16 @@ class ProviderSubscriptionModel {
       description: json['description'],
       duration: json['duration'],
       planType: json['plan_type'],
-      appStoreIdentifier: json['appstore_identifier'] is String ? json['appstore_identifier'] : "",
-      playStoreIdentifier: json['playstore_identifier'] is String ? json['playstore_identifier'] : "",
-      activePlanRevenueCatIdentifier: json['active_in_app_purchase_identifier'] is String ? json['active_in_app_purchase_identifier'] : "",
+      appStoreIdentifier: json['appstore_identifier'] is String
+          ? json['appstore_identifier']
+          : "",
+      playStoreIdentifier: json['playstore_identifier'] is String
+          ? json['playstore_identifier']
+          : "",
+      activePlanRevenueCatIdentifier:
+          json['active_in_app_purchase_identifier'] is String
+              ? json['active_in_app_purchase_identifier']
+              : "",
     );
   }
 
@@ -78,7 +87,8 @@ class ProviderSubscriptionModel {
     data['duration'] = this.duration;
     data['plan_limitation'] = this.planLimitation;
     data['plan_type'] = this.planType;
-    data['active_in_app_purchase_identifier']=this.activePlanRevenueCatIdentifier;
+    data['active_in_app_purchase_identifier'] =
+        this.activePlanRevenueCatIdentifier;
     if (this.planLimitation != null) {
       data['plan_limitation'] = this.planLimitation!.toJson();
     }
@@ -95,9 +105,14 @@ class PlanLimitation {
 
   factory PlanLimitation.fromJson(Map<String, dynamic> json) {
     return PlanLimitation(
-      featuredService: json['featured_service'] != null ? LimitData.fromJson(json['featured_service']) : null,
-      handyman: json['handyman'] != null ? LimitData.fromJson(json['handyman']) : null,
-      service: json['service'] != null ? LimitData.fromJson(json['service']) : null,
+      featuredService: json['featured_service'] != null
+          ? LimitData.fromJson(json['featured_service'])
+          : null,
+      handyman: json['handyman'] != null
+          ? LimitData.fromJson(json['handyman'])
+          : null,
+      service:
+          json['service'] != null ? LimitData.fromJson(json['service']) : null,
     );
   }
 
@@ -134,5 +149,85 @@ class LimitData {
     data['is_checked'] = this.isChecked;
     data['limit'] = this.limit;
     return data;
+  }
+}
+
+class SubscriptionResponse {
+  final bool success;
+  final String message;
+  final SubscriptionData data;
+
+  SubscriptionResponse({
+    required this.success,
+    required this.message,
+    required this.data,
+  });
+
+  factory SubscriptionResponse.fromJson(Map<String, dynamic> json) {
+    return SubscriptionResponse(
+      success: json['success'],
+      message: json['message'],
+      data: SubscriptionData.fromJson(json['data']),
+    );
+  }
+}
+
+class SubscriptionData {
+  final int subscriptionId;
+  final int userId;
+  final String transactionId;
+  final String startDate;
+  final String endDate;
+  final String paymentStatus;
+  final int totalAmount;
+  final int gstAmount;
+  final String updatedAt;
+  final String createdAt;
+  final int id;
+
+  SubscriptionData({
+    required this.subscriptionId,
+    required this.userId,
+    required this.transactionId,
+    required this.startDate,
+    required this.endDate,
+    required this.paymentStatus,
+    required this.totalAmount,
+    required this.gstAmount,
+    required this.updatedAt,
+    required this.createdAt,
+    required this.id,
+  });
+
+  // factory SubscriptionData.fromJson(Map<String, dynamic> json) {
+  //   return SubscriptionData(
+  //     subscriptionId: int.tryParse(json['subscription_id'].toString()) ?? 0,
+  //     userId: int.tryParse(json['user_id'].toString()) ?? 0,
+  //     transactionId: json['transaction_id'],
+  //     startDate: json['start_date'],
+  //     endDate: json['end_date'],
+  //     paymentStatus: json['payment_status'],
+  //     totalAmount: int.tryParse(json['total_amount'].toString()) ?? 0,
+  //     gstAmount: int.tryParse(json['gst_amount'].toString()) ?? 0,
+  //     updatedAt: json['updated_at'],
+  //     createdAt: json['created_at'],
+  //     id: json['id'],
+  //   );
+  // }
+  factory SubscriptionData.fromJson(Map<String, dynamic> json) {
+    return SubscriptionData(
+      subscriptionId:
+          int.tryParse(json['subscription_id']?.toString() ?? '0') ?? 0,
+      userId: int.tryParse(json['user_id']?.toString() ?? '0') ?? 0,
+      transactionId: json['transaction_id'] ?? '',
+      startDate: json['start_date'] ?? '',
+      endDate: json['end_date'] ?? '',
+      paymentStatus: json['payment_status'] ?? '',
+      totalAmount: int.tryParse(json['total_amount']?.toString() ?? '0') ?? 0,
+      gstAmount: int.tryParse(json['gst_amount']?.toString() ?? '0') ?? 0,
+      updatedAt: json['updated_at'] ?? '',
+      createdAt: json['created_at'] ?? '',
+      id: json['id'] ?? 0,
+    );
   }
 }

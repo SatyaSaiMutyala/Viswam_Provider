@@ -1,4 +1,4 @@
-const appLogo = 'assets/icons/viswamLogo.png';
+const appLogo = 'assets/icons/viswamLogo1.png';
 
 const chat_default_wallpaper = "assets/images/default_wallpaper.png";
 const imgForceUpdate = 'assets/images/force_update.png';

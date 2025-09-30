@@ -30,7 +30,7 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace "com.viswam.provider"
+    namespace "com.viswam9.provider"
     compileSdk 35
     ndkVersion "27.0.12077973"
 
@@ -49,7 +49,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.viswam.provider"
+        applicationId "com.viswam9.provider"
         minSdkVersion 23
         targetSdkVersion 35
         versionCode 95

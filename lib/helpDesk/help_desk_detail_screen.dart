@@ -262,7 +262,7 @@ class _HelpDeskDetailScreenState extends State<HelpDeskDetailScreen> {
                                             focus: descriptionFocus,
                                             maxLines: 10,
                                             minLines: 3,
-                                            enableChatGPT: appConfigurationStore.chatGPTStatus,
+                                            // enableChatGPT: appConfigurationStore.chatGPTStatus,
                                             promptFieldInputDecorationChatGPT: inputDecoration(context).copyWith(
                                               hintText: languages.writeHere,
                                               fillColor: context.scaffoldBackgroundColor,

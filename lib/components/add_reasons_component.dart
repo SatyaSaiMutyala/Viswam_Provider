@@ -56,7 +56,7 @@ class _AddReasonsComponentState extends State<AddReasonsComponent> {
           AppTextField(
             textFieldType: TextFieldType.NAME,
             controller: reasonsCont,
-            decoration: inputDecoration(context, hint: languages.writeReason,fillColor: Colors.black),
+            decoration: inputDecoration(context, hint: languages.writeReason),
           ).paddingAll(16),
           AppButton(
             text: languages.btnSave,

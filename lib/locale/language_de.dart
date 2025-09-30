@@ -404,6 +404,9 @@ class LanguageDe extends Languages {
   String get lblSignupSubtitle => "Erstellen Sie Ihr Konto für bessere Erfahrung";
 
   @override
+  String get lblrefid => "Referal Id";
+
+  @override
   String get lblSignup => "Anmeldung";
 
   @override
@@ -597,6 +600,14 @@ class LanguageDe extends Languages {
 
   @override
   String get lblPlanExpired => "Opps! Plan abgelaufen";
+
+  
+  @override
+  String get noRealEstate => "No Real Estate";
+  
+  @override
+  String get subNorealEstate => "Looks like your haven't add your Real Estate services yet";
+
 
   @override
   String get lblPlanSubTitle => "Ihr vorheriger Plan ist abgelaufen";
@@ -1747,6 +1758,9 @@ class LanguageDe extends Languages {
   
   @override
   String get btnSubscription => 'Subscription';
+  
+  @override
+  String get btnReferal => 'Refer & Earn';
 
   @override
   String get paymentSuccess => 'Zahlungserfolg';

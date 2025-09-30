@@ -1,12 +1,191 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:get/get.dart';
+import 'package:handyman_provider_flutter/provider/services/add_services.dart';
 import 'package:nb_utils/nb_utils.dart';
 
-import '../components/back_widget.dart';
+import '../components/app_widgets.dart';
+import '../main.dart';
+import '../models/static_data_model.dart';
+import '../models/service_model.dart';
+import '../provider/payment/components/flutter_wave_service_new.dart';
+import '../provider/payment/components/paystack_service.dart';
+import '../provider/payment/components/razorpay_service_new.dart';
+import '../provider/payment/components/stripe_service_new.dart';
+import '../provider/provider_dashboard_screen.dart';
+import '../utils/app_configuration.dart';
 import '../utils/configs.dart';
+import '../utils/colors.dart';
+import '../components/back_widget.dart';
+import '../components/empty_error_state_widget.dart';
+import '../components/price_widget.dart';
+import '../networks/rest_apis.dart';
+import '../utils/constant.dart';
+import '../utils/model_keys.dart';
 
-class PaymentDetailsScreen extends StatelessWidget {
-  const PaymentDetailsScreen({super.key});
+class PaymentDetailsScreen extends StatefulWidget {
+  final int? id;
+  final String? price;
+  final String? planName;
+  final String? duration;
+  final dynamic? gst;
+  final double? taxAmount;
+  final double? totalAmount;
+  final bool? dealer;
+
+  const PaymentDetailsScreen(
+      {super.key,
+      this.id,
+      this.price,
+      this.planName,
+      this.duration,
+      this.gst,
+      this.taxAmount,
+      this.totalAmount,
+      this.dealer});
+
+  @override
+  State<PaymentDetailsScreen> createState() => _PaymentDetailsScreenState();
+}
+
+class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> {
+  List<PaymentSetting> paymentList = [];
+  PaymentSetting? selectedPaymentSetting;
+
+  @override
+  void initState() {
+    super.initState();
+    getPaymentMethods();
+  }
+
+  Future<void> getPaymentMethods() async {
+    appStore.setLoading(true);
+
+    await getPaymentGateways(requireCOD: false).then((paymentListData) {
+      paymentList = paymentListData.validate();
+      setState(() {});
+    }).catchError((e) {
+      toast(e.toString(), print: true);
+    });
+
+    appStore.setLoading(false);
+  }
+
+  num get totalAmount {
+    num base =
+        num.tryParse(widget.price!.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+    num gst = (base * 0.15);
+    return double.parse((base + gst).toStringAsFixed(2));
+  }
+
+  Future<void> handleAddSubscriptionDetails(String trans_Id) async {
+    appStore.setLoading(true);
+    if (widget.dealer == false) {
+      final req = {
+        AddSubscriptionDetailsKey.userId: appStore.userId.toString(),
+        AddSubscriptionDetailsKey.subscriptionId: widget.id.toString(),
+        AddSubscriptionDetailsKey.gstAmount: widget.gst.toString(),
+        AddSubscriptionDetailsKey.paymentStatus: "success",
+        AddSubscriptionDetailsKey.totalAmount: widget.totalAmount.toString(),
+        AddSubscriptionDetailsKey.transactionId: trans_Id,
+      };
+      print('Request payload: $req');
+      try {
+        final response = await saveSubscriptionDetails(req);
+        toast("Subscription saved successfully");
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProviderDashboardScreen(),
+          ),
+          (route) => false,
+        );
+      } catch (e) {
+        print('Error saving subscription: $e');
+        toast("Failed to save subscription details");
+      } finally {
+        appStore.setLoading(false);
+      }
+    } else {
+      final req = {
+        AddDealerKey.userId: appStore.userId.toString(),
+        AddDealerKey.gstAmount: widget.gst.toString(),
+        AddDealerKey.paymentStatus: "success",
+        AddDealerKey.totalAmount: widget.totalAmount.toString(),
+        AddDealerKey.transactionId: trans_Id,
+        AddDealerKey.levelId: widget.id.toString(),
+      };
+      print('Request payload: $req');
+      try {
+        final response = await saveDealerDetails(req);
+        toast("Dealer saved successfully");
+        print('this is response ---------> ${response.data}');
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProviderDashboardScreen(),
+          ),
+          (route) => false,
+        );
+      } catch (e, s) {
+        print('Error saving Dealer: ------> ${e}');
+        print('Stack trace:\n ----->${s}');
+        toast("Failed to save Dealer details");
+      } finally {
+        appStore.setLoading(false);
+      }
+    }
+  }
+
+  void handlePayment() {
+    if (selectedPaymentSetting == null) {
+      toast("Please select a payment method");
+      return;
+    }
+
+    final selected = selectedPaymentSetting!;
+    if (selected.type == PAYMENT_METHOD_STRIPE) {
+      StripeServiceNew(
+        paymentSetting: selected,
+        totalAmount: widget.totalAmount!,
+        onComplete: (p0) {
+          toast("Stripe Paid: ${p0['transaction_id']}");
+        },
+      ).stripePay();
+    } else if (selected.type == PAYMENT_METHOD_RAZOR) {
+      RazorPayServiceNew(
+        paymentSetting: selected,
+        totalAmount: widget.totalAmount!,
+        onComplete: (p0) {
+          handleAddSubscriptionDetails(p0['paymentId']);
+        },
+      ).razorPayCheckout();
+    } else if (selected.type == PAYMENT_METHOD_FLUTTER_WAVE) {
+      FlutterWaveServiceNew().checkout(
+        paymentSetting: selected,
+        totalAmount: widget.totalAmount!,
+        onComplete: (p0) {
+          toast("Flutterwave Paid: ${p0['transaction_id']}");
+        },
+      );
+    } else if (selected.type == PAYMENT_METHOD_PAYSTACK) {
+      PayStackService()
+          .init(
+            context: context,
+            currentPaymentMethod: selected,
+            totalAmount: widget.totalAmount!,
+            loderOnOFF: (p) => appStore.setLoading(p),
+            bookingId: widget.id.validate(),
+            onComplete: (res) {
+              toast("Paystack Paid: ${res["transaction_id"]}");
+            },
+          )
+          .then((_) => PayStackService().checkout());
+    } else {
+      toast("Payment method not implemented: ${selected.type}");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,181 +202,159 @@ class PaymentDetailsScreen extends StatelessWidget {
         showBack: true,
         backWidget: BackWidget(),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(padding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(padding),
-              decoration: BoxDecoration(
-                color: Color(0xFFFDF8ED),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Order Summary',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: titleSize)),
-                  SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Stack(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(padding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                /// Order Summary
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(padding),
+                  decoration: BoxDecoration(
+                    // color:  Color(0xFFFDF8ED),
+                    color: context.cardColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Gold Plan ( Monthly )',
-                          style: TextStyle(fontSize: fontSize)),
-                      Text('₹999',
-                          style: TextStyle(
-                              fontSize: fontSize,
-                              fontWeight: FontWeight.w600)),
+                      Text('Order Summary', style: boldTextStyle(size: 18)),
+                      10.height,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('${widget.planName} (${widget.duration})',
+                              style: primaryTextStyle(size: 14)),
+                          Text('${widget.price}',
+                              style: boldTextStyle(size: 14)),
+                        ],
+                      ),
+                      6.height,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('GST (${widget.gst}%)',
+                              style: primaryTextStyle(size: 14)),
+                          Text(
+                            '₹${widget.taxAmount}',
+                            style: boldTextStyle(size: 14),
+                          ),
+                        ],
+                      ),
+                      Divider(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Total Amount', style: boldTextStyle(size: 14)),
+                          Text('₹${widget.totalAmount}',
+                              style: boldTextStyle(size: 14 + 1)),
+                        ],
+                      ),
                     ],
                   ),
-                  SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('GST ( 15 % )', style: TextStyle(fontSize: fontSize)),
-                      Text('₹179',
-                          style: TextStyle(
-                              fontSize: fontSize,
-                              fontWeight: FontWeight.w600)),
-                    ],
-                  ),
-                  Divider(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Total Amount',
-                          style: TextStyle(
-                              fontSize: fontSize,
-                              fontWeight: FontWeight.bold)),
-                      Text('₹1,178',
-                          style: TextStyle(
-                              fontSize: fontSize + 1,
-                              fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: padding),
-            // Text('Payments',
-            //     style:
-            //         TextStyle(fontSize: titleSize, fontWeight: FontWeight.bold)),
-            SizedBox(height: 12),
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              height: width * 0.13,
-              child: ElevatedButton(
-                onPressed: () {
-                  toast('Pay ₹1,178 tapped');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
                 ),
-                child: Text('Pay ₹1,178',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: fontSize,
-                        fontWeight: FontWeight.bold)),
-              ),
+                20.height,
+
+                /// Payment Methods
+                Text('Choose Payment Method', style: boldTextStyle()),
+                8.height,
+                if (paymentList.isNotEmpty)
+                  AnimatedListView(
+                    itemCount: paymentList.length,
+                    shrinkWrap: true,
+                    listAnimationType: ListAnimationType.FadeIn,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemBuilder: (context, index) {
+                      PaymentSetting paymentData = paymentList[index];
+                      return RadioListTile<PaymentSetting>(
+                        dense: true,
+                        value: paymentData,
+                        groupValue: selectedPaymentSetting,
+                        controlAffinity: ListTileControlAffinity.trailing,
+                        onChanged: (value) {
+                          selectedPaymentSetting = value;
+                          setState(() {});
+                        },
+                        title: Text(paymentData.title.validate(),
+                            style: primaryTextStyle()),
+                      );
+                    },
+                  )
+                else
+                  NoDataWidget(
+                    title: 'No payment methods found',
+                    imageWidget: EmptyStateWidget(),
+                  ),
+                const Spacer(),
+
+                /// Pay Button
+                SizedBox(
+                  width: double.infinity,
+                  height: width * 0.13,
+                  child: ElevatedButton(
+                    onPressed: handlePayment,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: Text('Pay ₹${widget.totalAmount}',
+                        style: boldTextStyle(color: white)),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          // Observer(
+          //     builder: (_) =>
+          //         LoaderWidget().center().visible(appStore.isLoading)),
+          Observer(
+            builder: (_) {
+              return appStore.isLoading
+                  ? const PaymentProcessingDialog().center()
+                  : const SizedBox.shrink();
+            },
+          ),
+        ],
       ),
     );
   }
 }
 
-class PaymentTabWidget extends StatefulWidget {
-  final double fontSize;
-
-  const PaymentTabWidget({super.key, required this.fontSize});
-
-  @override
-  State<PaymentTabWidget> createState() => _PaymentTabWidgetState();
-}
-
-class _PaymentTabWidgetState extends State<PaymentTabWidget> {
-  int selectedTab = 0;
-
-  final List<String> tabs = ['UPI', 'Cards', 'Net Banking'];
+class PaymentProcessingDialog extends StatelessWidget {
+  const PaymentProcessingDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
-    return Container(
-      padding: EdgeInsets.all(width * 0.03),
-      decoration: BoxDecoration(
-        color: white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: List.generate(tabs.length, (index) {
-              bool isSelected = selectedTab == index;
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      selectedTab = index;
-                    });
-                  },
-                  child: Container(
-                    padding:
-                        EdgeInsets.symmetric(vertical: width * 0.03),
-                    decoration: BoxDecoration(
-                      color: isSelected ? Colors.amber : Colors.grey[200],
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(tabs[index],
-                        style: TextStyle(
-                            color:
-                                isSelected ? Colors.white : Colors.black,
-                            fontSize: widget.fontSize - 1,
-                            fontWeight: FontWeight.w600)),
-                  ),
-                ),
-              );
-            }),
+    return Dialog(
+      backgroundColor: context.cardColor,
+      insetPadding: EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: IntrinsicHeight(
+          child: Column(
+            children: [
+              CircularProgressIndicator(color: primaryColor),
+              24.height,
+              Text(
+                'Processing your payment...',
+                style: boldTextStyle(size: 16),
+                textAlign: TextAlign.center,
+              ),
+              8.height,
+              Text(
+                'Please wait while we confirm your subscription.',
+                style: secondaryTextStyle(),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
-          SizedBox(height: width * 0.04),
-            SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                upiAppIcon(Icons.account_balance_wallet, 'Google Pay'),
-                upiAppIcon(Icons.account_balance, 'Phonepe'),
-                upiAppIcon(Icons.payment, 'Paytm'),
-              ],
-            )
-          ] 
-      ),
-    );
-  }
-
-  Widget upiAppIcon(IconData icon, String label) {
-    double width = MediaQuery.of(context).size.width;
-    return Column(
-      children: [
-        CircleAvatar(
-          radius: width * 0.07,
-          backgroundColor: Colors.grey[300],
-          child: Icon(icon, size: width * 0.08, color: Colors.black),
         ),
-        SizedBox(height: 6),
-        Text(label,
-            style:
-                TextStyle(fontSize: widget.fontSize - 2, color: Colors.black)),
-      ],
+      ),
     );
   }
 }

@@ -403,6 +403,9 @@ class LanguageAr extends Languages {
   String get lblSignupSubtitle => "انشيء حسابك للحصول على تجربة أفضل";
 
   @override
+  String get lblrefid => "Referal Id";
+
+  @override
   String get lblSignup => "تسجيل";
 
   @override
@@ -1737,9 +1740,20 @@ class LanguageAr extends Languages {
   @override
   String get addonServices => 'الخدمات الإضافية';
 
+
+
+  @override
+  String get noRealEstate => "No Real Estate";
+  
+  @override
+  String get subNorealEstate => "Looks like your haven't add your Real Estate services yet";
+
   
   @override
   String get btnSubscription => 'الاشتراك';
+
+  @override
+  String get btnReferal => 'Refer & Earn';
 
   @override
   String get paymentSuccess => 'الدفع الناجح';

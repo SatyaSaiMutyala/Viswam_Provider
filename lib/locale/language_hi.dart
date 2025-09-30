@@ -403,6 +403,9 @@ class LanguageHi extends Languages {
 
   @override
   String get lblSignupSubtitle => "बेहतर अनुभव के लिए अपना खाता बनाएं";
+  
+  @override
+  String get lblrefid => "Referal Id";
 
   @override
   String get lblSignup => "साइन अप करें";
@@ -1742,8 +1745,19 @@ class LanguageHi extends Languages {
   @override
   String get paymentSuccess => 'भुगतान की सफलता';
 
+  
+  @override
+  String get noRealEstate => "No Real Estate";
+  
+  @override
+  String get subNorealEstate => "Looks like your haven't add your Real Estate services yet";
+
+
   @override
   String get btnSubscription => 'सब्सक्रिप्शन';
+  
+  @override
+  String get btnReferal => 'Refer & Earn';
 
   @override
   String get redirectingToBookings => 'बुकिंग के लिए पुनर्निर्देशन ..';

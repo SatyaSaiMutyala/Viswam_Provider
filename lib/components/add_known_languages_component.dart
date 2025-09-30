@@ -56,7 +56,7 @@ class _AddKnownLanguagesComponentState extends State<AddKnownLanguagesComponent>
           AppTextField(
             textFieldType: TextFieldType.NAME,
             controller: knownLangCont,
-            decoration: inputDecoration(context, hint: languages.knownLanguages,fillColor: Colors.black),
+            decoration: inputDecoration(context, hint: languages.knownLanguages),
           ).paddingAll(16),
           AppButton(
             text: languages.btnSave,

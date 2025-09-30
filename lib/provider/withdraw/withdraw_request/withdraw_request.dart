@@ -145,7 +145,7 @@ class _WithdrawRequestState extends State<WithdrawRequest> {
                   controller: amount,
                   focus: amountFocus,
                   nextFocus: chooseBankFocus,
-                  decoration: inputDecoration(context, hint: languages.eg3000,prefix: Text("\$ ")),
+                  decoration: inputDecoration(context, hint: languages.eg3000,prefix: Text("\₹ ")),
                   isValidationRequired: true,
                   validator: (value) {
                     if (value?.isEmpty ?? false) {

@@ -71,7 +71,7 @@ NotificationService notificationService = NotificationService();
 //endregion
 
 //region In App Purchase Service
-InAppPurchaseService inAppPurchaseService=InAppPurchaseService();
+InAppPurchaseService inAppPurchaseService = InAppPurchaseService();
 //region
 
 //region Global Variables
@@ -118,7 +118,7 @@ void main() async {
       log(e.toString());
     });
   }
- HttpOverrides.global = MyHttpOverrides();
+  HttpOverrides.global = MyHttpOverrides();
 
   defaultSettings();
 
@@ -126,7 +126,6 @@ void main() async {
 
   appStore.setLanguage(
       getStringAsync(SELECTED_LANGUAGE_CODE, defaultValue: DEFAULT_LANGUAGE));
-
   runApp(MyApp());
 }
 
@@ -148,7 +147,7 @@ class _MyAppState extends State<MyApp> {
       if (val == THEME_MODE_LIGHT) {
         appStore.setDarkMode(false);
       } else if (val == THEME_MODE_DARK) {
-        appStore.setDarkMode(true);
+        appStore.setDarkMode(false);
       }
     });
   }
@@ -182,11 +181,12 @@ class _MyAppState extends State<MyApp> {
             GlobalCupertinoLocalizations.delegate,
           ],
           builder: (context, child) {
-                  return MediaQuery(
-                    child: child!,
-                    data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1.0)),
-                  );
-                },
+            return MediaQuery(
+              child: child!,
+              data: MediaQuery.of(context)
+                  .copyWith(textScaler: TextScaler.linear(1.0)),
+            );
+          },
           localeResolutionCallback: (locale, supportedLocales) => locale,
           locale: Locale(appStore.selectedLanguageCode),
         ),
@@ -198,6 +198,8 @@ class _MyAppState extends State<MyApp> {
 class MyHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
-    return super.createHttpClient(context)..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+    return super.createHttpClient(context)
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
   }
 }

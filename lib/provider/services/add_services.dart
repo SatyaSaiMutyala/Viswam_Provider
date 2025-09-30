@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,13 +23,17 @@ import 'package:nb_utils/nb_utils.dart';
 import '../../components/chat_gpt_loder.dart';
 import '../../models/multi_language_request_model.dart';
 import '../../models/static_data_model.dart';
+import '../../screens/real_estate/subscribtion_promotion.dart';
+import '../../screens/subscription_screen.dart';
+import '../controllers/get_subscription_controller.dart';
+import 'service_list_screen.dart';
 
 class AddServices extends StatefulWidget {
   final ServiceData? data;
   final bool showAppbar;
 
-  // AddServices({this.data, this.showAppbar = true});
-   const AddServices({this.data, this.showAppbar = true, Key? key}) : super(key: key);
+  const AddServices({this.data, this.showAppbar = true, Key? key})
+      : super(key: key);
 
   @override
   State<AddServices> createState() => _AddServicesState();
@@ -51,6 +54,10 @@ class _AddServicesState extends State<AddServices> {
   TextEditingController prePayAmountController = TextEditingController();
   TextEditingController hoursCont = TextEditingController();
   TextEditingController miutesCont = TextEditingController();
+  TextEditingController ownerNameCont = TextEditingController();
+  TextEditingController companyNameCont = TextEditingController();
+  TextEditingController phoneCont = TextEditingController();
+  TextEditingController addressCont = TextEditingController();
 
   /// FocusNode
   FocusNode serviceNameFocus = FocusNode();
@@ -68,6 +75,7 @@ class _AddServicesState extends State<AddServices> {
   String serviceStatus = ACTIVE;
   int? categoryId = -1;
   int? subCategoryId = -1;
+  int? mainCategoryId = -1;
 
   TimeOfDay? currentTime;
 
@@ -76,16 +84,25 @@ class _AddServicesState extends State<AddServices> {
   bool isTimeSlotAvailable = false;
   bool isAdvancePayment = false;
   bool isDigitalService = false;
-  bool isAdvancePaymentAllowedBySystem = appConfigurationStore.isAdvancePaymentAllowed;
+  bool isAdvancePaymentAllowedBySystem =
+      appConfigurationStore.isAdvancePaymentAllowed;
   bool isOnSiteVisit = true;
   bool isOnlineOrRemoteService = false;
+  bool? isSubscribed;
   List<File> imageFiles = [];
   List<Attachments> tempAttachments = [];
 
   VisitTypeData? selectedVisitType;
   List<VisitTypeData> visitTypeData = [
-    VisitTypeData(isEnabled: false, title: languages.onSiteVisit, key: VISIT_OPTION_ON_SITE),
-    if (appConfigurationStore.digitalServiceStatus) VisitTypeData(isEnabled: false, title: languages.onlineRemoteService, key: VISIT_OPTION_ONLINE),
+    VisitTypeData(
+        isEnabled: false,
+        title: languages.onSiteVisit,
+        key: VISIT_OPTION_ON_SITE),
+    if (appConfigurationStore.digitalServiceStatus)
+      VisitTypeData(
+          isEnabled: false,
+          title: languages.onlineRemoteService,
+          key: VISIT_OPTION_ONLINE),
   ];
 
   List<StaticDataModel> typeStaticData = [
@@ -108,7 +125,25 @@ class _AddServicesState extends State<AddServices> {
   @override
   void initState() {
     super.initState();
+    String id = appStore.userId.toString();
+    fetchSubscriptionStatus(id);
     init();
+  }
+
+  Future<void> fetchSubscriptionStatus(String id) async {
+    setState(() => isSubscribed = null);
+
+    try {
+      final response = await getSubscriptionStatus(id);
+      if (response['status'] == true) {
+        setState(() => isSubscribed = response['subscribe'] == true);
+      } else {
+        setState(() => isSubscribed = false);
+      }
+    } catch (e) {
+      log('Subscription check failed: $e');
+      setState(() => isSubscribed = false);
+    }
   }
 
   void init() async {
@@ -117,13 +152,24 @@ class _AddServicesState extends State<AddServices> {
     appStore.setSelectedLanguage(languageList().first);
     if (isUpdate) {
       tempAttachments = widget.data!.attchments.validate();
-      imageFiles = widget.data!.attchments.validate().map((e) => File(e.url.toString())).toList();
-      serviceNameCont.text = widget.data?.translations?[DEFAULT_LANGUAGE]?.name.validate() ?? "";
+      imageFiles = widget.data!.attchments
+          .validate()
+          .map((e) => File(e.url.toString()))
+          .toList();
+      serviceNameCont.text =
+          widget.data?.translations?[DEFAULT_LANGUAGE]?.name.validate() ?? "";
       priceCont.text = widget.data!.price.toString().validate();
       discountCont.text = widget.data!.discount.toString().validate();
-      descriptionCont.text = widget.data?.translations?[DEFAULT_LANGUAGE]?.description.validate() ?? "";
+      descriptionCont.text = widget
+              .data?.translations?[DEFAULT_LANGUAGE]?.description
+              .validate() ??
+          "";
+      mainCategoryId = widget.data!.mainCategoryId.validate();
       categoryId = widget.data!.categoryId.validate();
       subCategoryId = widget.data!.subCategoryId.validate();
+      phoneCont.text = widget.data!.phoneNumber.validate();
+      companyNameCont.text = widget.data!.companyName.validate();
+
       isFeature = widget.data!.isFeatured.validate() == 1 ? true : false;
       serviceType = widget.data!.type.validate();
       serviceStatus = widget.data!.status.validate() == 1 ? ACTIVE : INACTIVE;
@@ -132,14 +178,17 @@ class _AddServicesState extends State<AddServices> {
       } else {
         serviceStatusModel = statusListStaticData[1];
       }
-      currentTime = TimeOfDay(hour: widget.data!.duration.validate().splitBefore(':').toInt(), minute: widget.data!.duration.validate().splitAfter(':').toInt());
+      currentTime = TimeOfDay(
+          hour: widget.data!.duration.validate().splitBefore(':').toInt(),
+          minute: widget.data!.duration.validate().splitAfter(':').toInt());
       durationContHr.text = "${currentTime!.hour}";
       durationContMin.text = "${currentTime!.minute}";
       isTimeSlotAvailable = widget.data!.isSlot.validate() == 1 ? true : false;
       //isAdvancePaymentAllowedBySystem = widget.data!.isAdvancePaymentSetting;
       isAdvancePayment = widget.data!.isAdvancePayment;
       if (widget.data!.advancePaymentAmount != null) {
-        prePayAmountController.text = widget.data!.advancePaymentAmount.validate().toString();
+        prePayAmountController.text =
+            widget.data!.advancePaymentAmount.validate().toString();
       }
       if (widget.data?.translations?.isNotEmpty ?? false) {
         translations = await widget.data!.translations!;
@@ -149,7 +198,9 @@ class _AddServicesState extends State<AddServices> {
       timeSlotStore.initializeSlots(
           value: widget.data!.providerSlotData.validate());
 
-      selectedVisitType = visitTypeData.firstWhere((element) => element.key == widget.data!.visitType.validate(), orElse: () => visitTypeData.first);
+      selectedVisitType = visitTypeData.firstWhere(
+          (element) => element.key == widget.data!.visitType.validate(),
+          orElse: () => visitTypeData.first);
     }
 
     setState(() {});
@@ -157,13 +208,15 @@ class _AddServicesState extends State<AddServices> {
   }
 
 //region Add Service
-  Future<void> checkValidation({required bool isSave, LanguageDataModel? code}) async {
+  Future<void> checkValidation(
+      {required bool isSave, LanguageDataModel? code}) async {
     if ((!isUpdate && imageFiles.isEmpty) || (isUpdate && imageFiles.isEmpty)) {
       toast(languages.pleaseSelectImages);
       return;
     }
 
-    if ((!isUpdate && serviceAddressList.validate().isEmpty) || (isUpdate && serviceAddressList.validate().isEmpty)) {
+    if ((!isUpdate && serviceAddressList.validate().isEmpty) ||
+        (isUpdate && serviceAddressList.validate().isEmpty)) {
       toast(languages.pleaseSelectServiceAddresses);
       return;
     }
@@ -190,7 +243,7 @@ class _AddServicesState extends State<AddServices> {
 //endregion
 
 //region remove en translations
-   removeEnTranslations() {
+  removeEnTranslations() {
     if (translations.containsKey(DEFAULT_LANGUAGE)) {
       translations.remove(DEFAULT_LANGUAGE);
     }
@@ -202,33 +255,43 @@ class _AddServicesState extends State<AddServices> {
     final req = {
       AddServiceKey.name: enTranslations.name.validate(),
       AddServiceKey.providerId: appStore.userId.validate(),
+      AddServiceKey.mainCatId: mainCategoryId,
       AddServiceKey.categoryId: categoryId,
       AddServiceKey.type: serviceType.validate(),
-      AddServiceKey.price: priceCont.text,
+      AddServiceKey.price: priceCont.text ?? 00,
       AddServiceKey.discountPrice: discountCont.text,
       AddServiceKey.description: enTranslations.description.validate(),
       AddServiceKey.isFeatured: isFeature ? '1' : '0',
       AddServiceKey.isSlot: isTimeSlotAvailable ? '1' : '0',
       AddServiceKey.status: serviceStatus.validate() == ACTIVE ? '1' : '0',
-      AddServiceKey.duration: "${currentTime!.hour}:${currentTime!.minute}",
-      AddServiceKey.visitType: selectedVisitType!.key,
+      // AddServiceKey.duration: "${currentTime!.hour}:${currentTime!.minute}",
+      // AddServiceKey.visitType: selectedVisitType!.key,
+      AddServiceKey.duration: currentTime != null
+          ? "${currentTime!.hour}:${currentTime!.minute}"
+          : "00:00",
+
+      AddServiceKey.visitType: selectedVisitType?.key ?? "",
       AddServiceKey.isServiceRequest: '1',
       AdvancePaymentKey.isEnableAdvancePayment: isAdvancePayment ? 1 : 0,
+      AddServiceKey.phnNumber : phoneCont.text ?? null,
+      AddServiceKey.companyName : companyNameCont.text ?? '',
     };
 
-    if (subCategoryId != -1) {
+    if (subCategoryId != -1 && subCategoryId != null) {
       req.putIfAbsent(AddServiceKey.subCategoryId, () => subCategoryId);
     }
 
     if (translations.isNotEmpty) {
-      req.putIfAbsent(AddServiceKey.translations, () => jsonEncode(translations));
+      req.putIfAbsent(
+          AddServiceKey.translations, () => jsonEncode(translations));
     }
 
     if (isUpdate) {
       req.putIfAbsent(AddServiceKey.id, () => widget.data!.id.validate());
     }
     if (isAdvancePaymentAllowedBySystem && isAdvancePayment) {
-      req.putIfAbsent(AdvancePaymentKey.advancePaymentAmount, () => prePayAmountController.text.validate().toDouble());
+      req.putIfAbsent(AdvancePaymentKey.advancePaymentAmount,
+          () => prePayAmountController.text.validate().toDouble());
     }
     return req;
   }
@@ -236,16 +299,86 @@ class _AddServicesState extends State<AddServices> {
   //endregion
 
 //region Service APi Call
+  // Future<void> _submitService(Map<String, dynamic> req) async {
+  //   try {
+  //     await addServiceMultiPart(
+  //       value: req,
+  //       serviceAddressList: serviceAddressList,
+  //       imageFile: imageFiles
+  //           .where((element) => !element.path.contains('http'))
+  //           .toList(),
+  //     );
+
+  //   } catch (e) {
+  //     toast(e.toString());
+  //   }
+  // }
+
   Future<void> _submitService(Map<String, dynamic> req) async {
     try {
       await addServiceMultiPart(
         value: req,
         serviceAddressList: serviceAddressList,
-        imageFile: imageFiles.where((element) => !element.path.contains('http')).toList(),
+        imageFile: imageFiles
+            .where((element) => !element.path.contains('http'))
+            .toList(),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => ServiceListScreen()),
       );
     } catch (e) {
-      toast(e.toString());
+      print('this is error --------> ${e.toString()}');
+      // toast(e.toString());
     }
+  }
+
+  void _resetForm() {
+    serviceNameCont.clear();
+    priceCont.clear();
+    discountCont.clear();
+    descriptionCont.clear();
+    durationContHr.clear();
+    durationContMin.clear();
+    prePayAmountController.clear();
+    hoursCont.clear();
+    imageFiles.clear();
+    serviceAddressList.clear();
+
+    setState(() {});
+  }
+
+//endregion
+
+//region Reset All Fields
+  void _resetAllFields() {
+    serviceNameCont.clear();
+    priceCont.clear();
+    discountCont.clear();
+    descriptionCont.clear();
+    durationContHr.clear();
+    durationContMin.clear();
+    prePayAmountController.clear();
+
+    serviceType = SERVICE_TYPE_FIXED;
+    serviceStatus = ACTIVE;
+    categoryId = -1;
+    subCategoryId = -1;
+    isFeature = false;
+    isTimeSlotAvailable = false;
+    isAdvancePayment = false;
+    currentTime = null;
+    imageFiles.clear();
+    tempAttachments.clear();
+    serviceAddressList.clear();
+    translations.clear();
+    enTranslations = MultiLanguageRequest();
+
+    selectedVisitType = visitTypeData.first;
+
+    formKey.currentState?.reset();
+
+    setState(() {});
   }
 
 //endregion
@@ -351,9 +484,26 @@ class _AddServicesState extends State<AddServices> {
       child: Form(
         key: formKey,
         autovalidateMode: AutovalidateMode.onUserInteraction,
-        child: Wrap(
-          runSpacing: 16,
-          children: [
+        child: Wrap(runSpacing: 16, children: [
+          CategorySubCatDropDown(
+            mainCategoryId: categoryId == -1 ? null : mainCategoryId,
+            categoryId: categoryId == -1 ? null : categoryId,
+            subCategoryId: subCategoryId == -1 ? null : subCategoryId,
+            isCategoryValidate: true,
+            onMainCategorySelect: (int? val) {
+              mainCategoryId = val;
+              setState(() {});
+            },
+            onCategorySelect: (int? val) {
+              categoryId = val;
+              setState(() {});
+            },
+            onSubCategorySelect: (int? val) {
+              subCategoryId = val;
+              setState(() {});
+            },
+          ),
+          if (mainCategoryId == 3) ...[
             AppTextField(
               textFieldType: TextFieldType.NAME,
               controller: serviceNameCont,
@@ -361,24 +511,31 @@ class _AddServicesState extends State<AddServices> {
               nextFocus: priceFocus,
               isValidationRequired: checkValidationLanguage(),
               errorThisFieldRequired: languages.hintRequired,
-              decoration: inputDecoration(context, hint: languages.hintServiceName, fillColor: context.scaffoldBackgroundColor),
+              decoration: inputDecoration(context,
+                  hint: languages.hintServiceName,
+                  fillColor: context.scaffoldBackgroundColor),
             ),
             16.height,
-            CategorySubCatDropDown(
-              categoryId: categoryId == -1 ? null : categoryId,
-              subCategoryId: subCategoryId == -1 ? null : subCategoryId,
-              isCategoryValidate: true,
-              onCategorySelect: (int? val) {
-                categoryId = val!;
-                setState(() {});
-              },
-              onSubCategorySelect: (int? val) {
-                subCategoryId = val!;
-                setState(() {});
-              },
-            ),
+            // CategorySubCatDropDown(
+            //   categoryId: categoryId == -1 ? null : categoryId,
+            //   subCategoryId: subCategoryId == -1 ? null : subCategoryId,
+            //   isCategoryValidate: true,
+            //   onCategorySelect: (int? val) {
+            //     categoryId = val!;
+            //     setState(() {});
+            //   },
+            //   onSubCategorySelect: (int? val) {
+            //     subCategoryId = val!;
+            //     setState(() {});
+            //   },
+            // ),
             ServiceAddressComponent(
-              selectedList: widget.data?.serviceAddressMapping.validate().map((e) => e.providerAddressMapping != null ? e.providerAddressMapping!.id.validate() : 0).toList(),
+              selectedList: widget.data?.serviceAddressMapping
+                  .validate()
+                  .map((e) => e.providerAddressMapping != null
+                      ? e.providerAddressMapping!.id.validate()
+                      : 0)
+                  .toList(),
               onSelectedList: (val) {
                 serviceAddressList = val;
               },
@@ -501,7 +658,7 @@ class _AddServicesState extends State<AddServices> {
               children: [
                 Expanded(
                   child: AppTextField(
-                    textFieldType: TextFieldType.PHONE,
+                    textFieldType: TextFieldType.NUMBER,
                     controller: durationContHr,
                     focus: durationHrFocus,
                     nextFocus: durationMinFocus,
@@ -516,7 +673,8 @@ class _AddServicesState extends State<AddServices> {
                               ? "0"
                               : durationContMin.text.toString()));
                     },
-                    errorThisFieldRequired: languages.hintRequired,
+                    // errorThisFieldRequired: languages.hintRequired,
+                    errorThisFieldRequired: null,
                     decoration: inputDecoration(
                       context,
                       hint: languages.lblDurationHr,
@@ -543,10 +701,8 @@ class _AddServicesState extends State<AddServices> {
                               : durationContHr.text.toString()),
                           minute: int.parse(value));
                     },
-                    isValidationRequired:
-                        appStore.selectedLanguage.languageCode ==
-                            DEFAULT_LANGUAGE,
-                    errorThisFieldRequired: languages.hintRequired,
+                    isValidationRequired: false,
+                    errorThisFieldRequired: null,
                     decoration: inputDecoration(
                       context,
                       hint: languages.lblDurationMin,
@@ -562,17 +718,17 @@ class _AddServicesState extends State<AddServices> {
               minLines: 5,
               controller: descriptionCont,
               focus: descriptionFocus,
-              enableChatGPT: appConfigurationStore.chatGPTStatus,
+              // enableChatGPT: appConfigurationStore.chatGPTStatus,
               promptFieldInputDecorationChatGPT:
                   inputDecoration(context).copyWith(
                 hintText: languages.writeHere,
                 fillColor: context.scaffoldBackgroundColor,
                 filled: true,
               ),
-              testWithoutKeyChatGPT: appConfigurationStore.testWithoutKey,
-              loaderWidgetForChatGPT: const ChatGPTLoadingWidget(),
-              errorThisFieldRequired: languages.hintRequired,
-              isValidationRequired: checkValidationLanguage(),
+              // testWithoutKeyChatGPT: appConfigurationStore.testWithoutKey,
+              // loaderWidgetForChatGPT: const ChatGPTLoadingWidget(),
+              errorThisFieldRequired: null,
+              isValidationRequired: false,
               decoration: inputDecoration(
                 context,
                 hint: languages.hintDescription,
@@ -689,96 +845,165 @@ class _AddServicesState extends State<AddServices> {
                 ),
               ),
             ),
-            if (appConfigurationStore.slotServiceStatus)
-              Container(
-                decoration: boxDecorationDefault(
-                    color: context.scaffoldBackgroundColor,
-                    borderRadius: radius()),
-                child: SettingItemWidget(
-                  title: languages.timeSlotAvailable,
-                  subTitle: languages.doesThisServicesContainsTimeslot,
-                  trailing: Observer(builder: (context) {
-                    return Transform.scale(
-                      scale: 0.8,
-                      child: CupertinoSwitch(
-                        activeColor: primaryColor,
-                        value: isTimeSlotAvailable,
-                        onChanged: (v) async {
-                          if (!v) {
-                            isTimeSlotAvailable = v;
-                            setState(() {});
-                            return;
-                          }
-                          if (timeSlotStore.isTimeSlotAvailable) {
-                            isTimeSlotAvailable = v;
-                            setState(() {});
-                          } else {
-                            toast(
-                                languages.pleaseEnterTheDefaultTimeslotsFirst);
-                            MyTimeSlotsScreen(isFromService: true)
-                                .launch(context)
-                                .then((value) {
-                              if (value != null) {
-                                if (value) {
-                                  isTimeSlotAvailable = v;
-                                  setState(() {});
-                                }
-                              }
-                            });
-                          }
-                        },
-                      ).visible(!timeSlotStore.isLoading,
-                          defaultWidget: LoaderWidget(size: 26)),
-                    );
-                  }),
-                ),
-              ),
-            if (isAdvancePaymentAllowedBySystem &&
-                serviceType == SERVICE_TYPE_FIXED)
-              Container(
-                decoration: boxDecorationDefault(
-                    color: context.scaffoldBackgroundColor,
-                    borderRadius: radius()),
-                child: SettingItemWidget(
-                  title: languages.enablePrePayment,
-                  subTitle: languages.enablePrePaymentMessage,
-                  trailing: Transform.scale(
-                    scale: 0.8,
-                    child: CupertinoSwitch(
-                      activeColor: primaryColor,
-                      value: isAdvancePayment,
-                      onChanged: (v) async {
-                        isAdvancePayment = !isAdvancePayment;
-                        setState(() {});
-                      },
-                    ),
-                  ),
-                ),
-              ),
-            if (isAdvancePaymentAllowedBySystem && isAdvancePayment)
-              AppTextField(
-                textFieldType: TextFieldType.PHONE,
-                controller: prePayAmountController,
-                focus: prePayAmountFocus,
-                maxLength: 3,
-                errorThisFieldRequired: languages.hintRequired,
-                decoration: inputDecoration(
-                  context,
-                  hint: languages.advancePayAmountPer,
-                  fillColor: context.scaffoldBackgroundColor,
-                  counterText: '',
-                ),
-                keyboardType: TextInputType.number,
-                validator: (s) {
-                  if (s!.isEmpty) return errorThisFieldRequired;
+            // if (appConfigurationStore.slotServiceStatus)
+            //   Container(
+            //     decoration: boxDecorationDefault(
+            //         color: context.scaffoldBackgroundColor,
+            //         borderRadius: radius()),
+            //     child: SettingItemWidget(
+            //       title: languages.timeSlotAvailable,
+            //       subTitle: languages.doesThisServicesContainsTimeslot,
+            //       trailing: Observer(builder: (context) {
+            //         return Transform.scale(
+            //           scale: 0.8,
+            //           child: CupertinoSwitch(
+            //             activeColor: primaryColor,
+            //             value: isTimeSlotAvailable,
+            //             onChanged: (v) async {
+            //               if (!v) {
+            //                 isTimeSlotAvailable = v;
+            //                 setState(() {});
+            //                 return;
+            //               }
+            //               if (timeSlotStore.isTimeSlotAvailable) {
+            //                 isTimeSlotAvailable = v;
+            //                 setState(() {});
+            //               } else {
+            //                 toast(
+            //                     languages.pleaseEnterTheDefaultTimeslotsFirst);
+            //                 MyTimeSlotsScreen(isFromService: true)
+            //                     .launch(context)
+            //                     .then((value) {
+            //                   if (value != null) {
+            //                     if (value) {
+            //                       isTimeSlotAvailable = v;
+            //                       setState(() {});
+            //                     }
+            //                   }
+            //                 });
+            //               }
+            //             },
+            //           ).visible(!timeSlotStore.isLoading,
+            //               defaultWidget: LoaderWidget(size: 26)),
+            //         );
+            //       }),
+            //     ),
+            //   ),
+            // if (isAdvancePaymentAllowedBySystem &&
+            //     serviceType == SERVICE_TYPE_FIXED)
+            //   Container(
+            //     decoration: boxDecorationDefault(
+            //         color: context.scaffoldBackgroundColor,
+            //         borderRadius: radius()),
+            //     child: SettingItemWidget(
+            //       title: languages.enablePrePayment,
+            //       subTitle: languages.enablePrePaymentMessage,
+            //       trailing: Transform.scale(
+            //         scale: 0.8,
+            //         child: CupertinoSwitch(
+            //           activeColor: primaryColor,
+            //           value: isAdvancePayment,
+            //           onChanged: (v) async {
+            //             isAdvancePayment = !isAdvancePayment;
+            //             setState(() {});
+            //           },
+            //         ),
+            //       ),
+            //     ),
+            //   ),
+            // if (isAdvancePaymentAllowedBySystem && isAdvancePayment)
+            //   AppTextField(
+            //     textFieldType: TextFieldType.PHONE,
+            //     controller: prePayAmountController,
+            //     focus: prePayAmountFocus,
+            //     maxLength: 3,
+            //     errorThisFieldRequired: languages.hintRequired,
+            //     decoration: inputDecoration(
+            //       context,
+            //       hint: languages.advancePayAmountPer,
+            //       fillColor: context.scaffoldBackgroundColor,
+            //       counterText: '',
+            //     ),
+            //     keyboardType: TextInputType.number,
+            //     validator: (s) {
+            //       if (s!.isEmpty) return errorThisFieldRequired;
 
-                  if (s.toInt() <= 0 || s.toInt() >= 100)
-                    return languages.valueConditionMessage;
-                  return null;
-                },
+            //       if (s.toInt() <= 0 || s.toInt() >= 100)
+            //         return languages.valueConditionMessage;
+            //       return null;
+            //     },
+            //   ),
+          ] else ...[
+            AppTextField(
+              textFieldType: TextFieldType.NAME,
+              controller: serviceNameCont,
+              errorThisFieldRequired: languages.hintRequired,
+              decoration: inputDecoration(
+                context,
+                hint: "Owner Name",
+                fillColor: context.scaffoldBackgroundColor,
               ),
+            ),
+            16.height,
+            AppTextField(
+              textFieldType: TextFieldType.NAME,
+              controller: companyNameCont,
+              // errorThisFieldRequired: languages.hintRequired,
+              decoration: inputDecoration(
+                context,
+                hint: "Company Name",
+                fillColor: context.scaffoldBackgroundColor,
+              ),
+            ),
+            16.height,
+            AppTextField(
+              textFieldType: TextFieldType.PHONE,
+              controller: phoneCont,
+              errorThisFieldRequired: languages.hintRequired,
+              decoration: inputDecoration(
+                context,
+                hint: "Phone Number",
+                fillColor: context.scaffoldBackgroundColor,
+              ),
+            ),
+            16.height,
+            // AppTextField(
+            //   textFieldType: TextFieldType.MULTILINE,
+            //   controller: addressCont,
+            //   minLines: 2,
+            //   errorThisFieldRequired: languages.hintRequired,
+            //   decoration: inputDecoration(
+            //     context,
+            //     hint: "Address",
+            //     fillColor: context.scaffoldBackgroundColor,
+            //   ),
+            // ),
+            ServiceAddressComponent(
+              selectedList: widget.data?.serviceAddressMapping
+                  .validate()
+                  .map((e) => e.providerAddressMapping != null
+                      ? e.providerAddressMapping!.id.validate()
+                      : 0)
+                  .toList(),
+              onSelectedList: (val) {
+                serviceAddressList = val;
+              },
+            ),
+
+            16.height,
+            AppTextField(
+              textFieldType: TextFieldType.MULTILINE,
+              controller: descriptionCont,
+              minLines: 4,
+              errorThisFieldRequired: null,
+              decoration: inputDecoration(
+                context,
+                hint: languages.hintDescription,
+                fillColor: context.scaffoldBackgroundColor,
+              ),
+            ),
           ],
-        ),
+        ]),
       ),
     );
   }
@@ -800,106 +1025,112 @@ class _AddServicesState extends State<AddServices> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      appBar: widget.showAppbar ? appBarWidget(
-        isUpdate ? languages.lblEditService : languages.hintAddService,
-        textColor: white,
-        color: context.primaryColor,
-        backWidget: BackWidget(),
-      ) : null,
+      appBar: widget.showAppbar
+          ? appBarWidget(
+              isUpdate ? languages.lblEditService : languages.hintAddService,
+              textColor: white,
+              color: context.primaryColor,
+              backWidget: BackWidget(goToHome: false),
+            )
+          : null,
       body: Stack(
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              // 8.height,
-              // MultiLanguageWidget(onTap: (LanguageDataModel code) {
-              //   log("langaugeCode ==> ${code.languageCode}");
-              //   checkValidation(isSave: false, code: code);
-              // }),
-              8.height,
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(vertical: 16.0),
-                  child: Column(
-                    children: [
-                      CustomImagePicker(
-                        key: uniqueKey,
-                        onRemoveClick: (value) {
-                          if (tempAttachments.validate().isNotEmpty &&
-                              imageFiles.isNotEmpty) {
-                            showConfirmDialogCustom(
-                              context,
-                              dialogType: DialogType.DELETE,
-                              positiveText: languages.lblDelete,
-                              negativeText: languages.lblCancel,
-                              onAccept: (p0) {
-                                imageFiles.removeWhere(
-                                    (element) => element.path == value);
-                                if (value.startsWith('http')) {
-                                  removeAttachment(
+          if (isSubscribed == null)
+            LoaderWidget().center()
+          else if (isSubscribed == true)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                8.height,
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(vertical: 16.0),
+                    child: Column(
+                      children: [
+                        CustomImagePicker(
+                          key: uniqueKey,
+                          onRemoveClick: (value) {
+                            if (tempAttachments.validate().isNotEmpty &&
+                                imageFiles.isNotEmpty) {
+                              showConfirmDialogCustom(
+                                context,
+                                dialogType: DialogType.DELETE,
+                                positiveText: languages.lblDelete,
+                                negativeText: languages.lblCancel,
+                                onAccept: (p0) {
+                                  imageFiles.removeWhere(
+                                      (element) => element.path == value);
+                                  if (value.startsWith('http')) {
+                                    removeAttachment(
                                       id: tempAttachments
                                           .validate()
                                           .firstWhere(
                                               (element) => element.url == value)
                                           .id
-                                          .validate());
-                                }
-                              },
-                            );
-                          } else {
-                            showConfirmDialogCustom(
-                              context,
-                              dialogType: DialogType.DELETE,
-                              positiveText: languages.lblDelete,
-                              negativeText: languages.lblCancel,
-                              onAccept: (p0) {
-                                imageFiles.removeWhere(
-                                    (element) => element.path == value);
-                                if (isUpdate) {
-                                  uniqueKey = UniqueKey();
-                                }
-                                setState(() {});
-                              },
-                            );
-                          }
-                        },
-                        selectedImages: widget.data != null
-                            ? imageFiles
-                                .validate()
-                                .map((e) => e.path.validate())
-                                .toList()
-                            : null,
-                        onFileSelected: (List<File> files) async {
-                          imageFiles = files;
-                          setState(() {});
-                        },
-                      ),
-                      buildFormWidget(),
-                    ],
-                  ).paddingOnly(left: 16.0, right: 16.0),
+                                          .validate(),
+                                    );
+                                  }
+                                },
+                              );
+                            } else {
+                              showConfirmDialogCustom(
+                                context,
+                                dialogType: DialogType.DELETE,
+                                positiveText: languages.lblDelete,
+                                negativeText: languages.lblCancel,
+                                onAccept: (p0) {
+                                  imageFiles.removeWhere(
+                                      (element) => element.path == value);
+                                  if (isUpdate) {
+                                    uniqueKey = UniqueKey();
+                                  }
+                                  setState(() {});
+                                },
+                              );
+                            }
+                          },
+                          selectedImages: widget.data != null
+                              ? imageFiles
+                                  .validate()
+                                  .map((e) => e.path.validate())
+                                  .toList()
+                              : null,
+                          onFileSelected: (List<File> files) async {
+                            imageFiles = files;
+                            setState(() {});
+                          },
+                        ),
+                        buildFormWidget(),
+                      ],
+                    ).paddingOnly(left: 16.0, right: 16.0),
+                  ),
                 ),
-              ),
-              Observer(
-                builder: (_) => AppButton(
-                  margin: EdgeInsets.only(bottom: 12),
-                  text: languages.btnSave,
-                  height: 40,
-                  color: appStore.isLoading ? primaryColor.withValues(alpha:0.5) : primaryColor,
-                  textStyle: boldTextStyle(color: white),
-                  width: context.width() - context.navigationBarHeight,
-                  onTap: appStore.isLoading
-                      ? () {}
-                      : () {
-                          checkValidation(isSave: true);
-                        },
-                ),
-              ).paddingOnly(left: 16.0, right: 16.0),
-            ],
-          ),
+                Observer(
+                  builder: (_) => AppButton(
+                    margin: EdgeInsets.only(bottom: 12),
+                    text: languages.btnSave,
+                    height: 40,
+                    color: appStore.isLoading
+                        ? primaryColor.withAlpha(80)
+                        : primaryColor,
+                    textStyle: boldTextStyle(color: white),
+                    width: MediaQuery.of(context).size.width -
+                        context.navigationBarHeight,
+                    onTap: appStore.isLoading
+                        ? () {}
+                        : () {
+                            checkValidation(isSave: true);
+                          },
+                  ),
+                ).paddingOnly(left: 16.0, right: 16.0),
+              ],
+            )
+          else
+            TakeSubscriptionMessage(showAppBar: false),
           Observer(
-              builder: (_) =>
-                  LoaderWidget().center().visible(appStore.isLoading)),
+            builder: (_) => LoaderWidget().center().visible(appStore.isLoading),
+          ),
         ],
       ),
     );

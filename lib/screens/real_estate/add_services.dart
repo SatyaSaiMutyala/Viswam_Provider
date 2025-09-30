@@ -39,7 +39,7 @@ class AddRealEstateServicesState extends State<AddRealEstateServices> {
   final TextEditingController rentController = TextEditingController();
   final TextEditingController depositController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
-
+  String? selectedType;
   String? selectedPropertyType;
   String? selectedFurnishingType;
   DateTime? selectedDate;
@@ -89,7 +89,8 @@ class AddRealEstateServicesState extends State<AddRealEstateServices> {
         if (model.images.isNotEmpty) {
           imageFiles = model.images.map((e) => File(e)).toList();
           setState(() {
-            selectedImages = model.images;
+            selectedImages = model.images.map((img) => '$DOMAIN_URL/$img') 
+        .toList();
           });
         }
         setState(() {
@@ -99,10 +100,11 @@ class AddRealEstateServicesState extends State<AddRealEstateServices> {
           selectedDate = parsedDate;
           isImmediteSelected = false;
           selectDate = true;
+          selectedType = model.type;
         });
         print(selectDate);
         print('---------------');
-        print('Images------->,${selectedImages}');
+        print('Images------->,${DOMAIN_URL}/${selectedImages[0]}');
         setState(() {});
       } else {
         toast('Failed to load service data');
@@ -122,59 +124,6 @@ class AddRealEstateServicesState extends State<AddRealEstateServices> {
     descriptionController.dispose();
     super.dispose();
   }
-
-  // Future<void> submitRealEstateForm() async {
-  //   hideKeyboard(context);
-
-  //   if (!formKey.currentState!.validate()) return;
-
-  //   appStore.setLoading(true);
-
-  //   try {
-  //     final uri = Uri.parse('${BASE_URL}save-realestate');
-
-  //     var request = http.MultipartRequest('POST', uri);
-  //     request.headers.addAll(buildHeaderTokens());
-
-  //     request.fields['provider_id'] = appStore.userId.toString();
-  //     request.fields['property_type'] = selectedPropertyType!;
-  //     request.fields['title'] = titleController.text.trim();
-  //     request.fields['location'] = locationController.text.trim();
-  //     request.fields['area_sqfeet'] = areaController.text.trim();
-  //     request.fields['monthly_rent'] = rentController.text.trim();
-  //     request.fields['security_deposit'] = depositController.text.trim();
-  //     request.fields['description'] = descriptionController.text.trim();
-  //     // request.fields['date'] =
-  //     //     isImmediteSelected ? DateTime.now().toIso8601String() : '';
-  //     request.fields['owner_name'] = ownerName!;
-  //     request.fields['owner_phn'] = ownerPhone!;
-  //     request.fields['owner_email'] = ownerEmail!;
-  //     request.fields['date'] = isImmediteSelected
-  //         ? DateTime.now().toIso8601String()
-  //         : (selectedDate?.toIso8601String() ?? '');
-
-  //     for (File file in imageFiles) {
-  //       request.files
-  //           .add(await http.MultipartFile.fromPath('images[]', file.path));
-  //     }
-
-  //     var response = await request.send();
-
-  //     if (response.statusCode == 200) {
-  //       toast('Service added successfully');
-  //       finish(context);
-  //     } else {
-  //       final error = await response.stream.bytesToString();
-  //       toast('Failed: $error');
-  //       print('Error man ------------> $error');
-  //     }
-  //   } catch (e) {
-  //     toast('Error: $e');
-  //     print('Error man ------------> $e');
-  //   } finally {
-  //     appStore.setLoading(false);
-  //   }
-  // }
 
   Future<void> submitRealEstateForm() async {
     hideKeyboard(context);
@@ -203,6 +152,7 @@ class AddRealEstateServicesState extends State<AddRealEstateServices> {
         request.fields['owner_name'] = ownerName ?? '';
         request.fields['owner_phn'] = ownerPhone ?? '';
         request.fields['owner_email'] = ownerEmail ?? '';
+        request.fields['type'] = selectedType ?? '';
         request.fields['date'] = isImmediteSelected
             ? DateTime.now().toIso8601String()
             : (selectedDate?.toIso8601String() ?? '');
@@ -242,6 +192,7 @@ class AddRealEstateServicesState extends State<AddRealEstateServices> {
         request.fields['owner_name'] = ownerName ?? '';
         request.fields['owner_phn'] = ownerPhone ?? '';
         request.fields['owner_email'] = ownerEmail ?? '';
+        request.fields['type'] = selectedType ?? '';
         request.fields['date'] = isImmediteSelected
             ? DateTime.now().toIso8601String()
             : (selectedDate?.toIso8601String() ?? '');
@@ -256,7 +207,7 @@ class AddRealEstateServicesState extends State<AddRealEstateServices> {
 
         if (response.statusCode == 200) {
           toast('Service added successfully');
-          finish(context);
+          finish(context, true);
         } else {
           final error = await response.stream.bytesToString();
           toast('Failed: $error');
@@ -423,7 +374,9 @@ class AddRealEstateServicesState extends State<AddRealEstateServices> {
               Text(
                 'Contact Info',
                 style: TextStyle(
-                    fontSize: width * 0.04, fontWeight: FontWeight.w600, color: textPrimaryColorGlobal),
+                    fontSize: width * 0.04,
+                    fontWeight: FontWeight.w600,
+                    color: textPrimaryColorGlobal),
               ),
               GestureDetector(
                 onTap: () {
@@ -466,7 +419,8 @@ class AddRealEstateServicesState extends State<AddRealEstateServices> {
                   Text(ownerName!,
                       style: TextStyle(
                           fontWeight: FontWeight.w600,
-                          fontSize: width * 0.035, color: textPrimaryColorGlobal)),
+                          fontSize: width * 0.035,
+                          color: textPrimaryColorGlobal)),
                   Text('Property Owner',
                       style: TextStyle(
                           color: Colors.grey, fontSize: width * 0.03)),
@@ -487,7 +441,9 @@ class AddRealEstateServicesState extends State<AddRealEstateServices> {
               ),
               Text(ownerPhone!,
                   style: TextStyle(
-                      fontWeight: FontWeight.w400, fontSize: width * 0.035, color: textPrimaryColorGlobal)),
+                      fontWeight: FontWeight.w400,
+                      fontSize: width * 0.035,
+                      color: textPrimaryColorGlobal)),
             ],
           ),
           SizedBox(height: width * 0.03),
@@ -503,7 +459,9 @@ class AddRealEstateServicesState extends State<AddRealEstateServices> {
               ),
               Text(ownerEmail!,
                   style: TextStyle(
-                      fontWeight: FontWeight.w400, fontSize: width * 0.035, color: textPrimaryColorGlobal)),
+                      fontWeight: FontWeight.w400,
+                      fontSize: width * 0.035,
+                      color: textPrimaryColorGlobal)),
             ],
           )
         ],
@@ -533,7 +491,7 @@ class AddRealEstateServicesState extends State<AddRealEstateServices> {
                 child: Padding(
                   padding: EdgeInsets.symmetric(
                       vertical: width * 0.04, horizontal: height * 0.05),
-                  child: Text('Immedite',
+                  child: Text('Immediate',
                       style: TextStyle(
                           color:
                               isImmediteSelected ? Colors.white : Colors.grey)),
@@ -599,7 +557,32 @@ class AddRealEstateServicesState extends State<AddRealEstateServices> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Property Details', style: primaryTextStyle(),).paddingBottom(25),
+            Text(
+              'Property Details',
+              style: primaryTextStyle(),
+            ).paddingBottom(25),
+            DropdownButtonFormField<String>(
+              value: selectedType,
+              decoration: inputDecoration(context,
+                  fillColor: context.scaffoldBackgroundColor,
+                  hint: "Select Type"),
+              isExpanded: true,
+              dropdownColor: context.cardColor,
+              items: ['Sell', 'Rent']
+                  .map((type) => DropdownMenuItem(
+                        value: type,
+                        child: Text(type, style: primaryTextStyle()),
+                      ))
+                  .toList(),
+              onChanged: (val) {
+                setState(() {
+                  selectedType = val;
+                });
+              },
+              validator: (value) =>
+                  value == null ? languages.hintRequired : null,
+            ),
+            16.height,
             DropdownButtonFormField<String>(
               value: selectedPropertyType,
               decoration: inputDecoration(context,
@@ -610,7 +593,7 @@ class AddRealEstateServicesState extends State<AddRealEstateServices> {
               items: ['Apartment', 'Villa', 'Plot', 'Commercial']
                   .map((type) => DropdownMenuItem(
                         value: type,
-                        child: Text(type,  style: primaryTextStyle()),
+                        child: Text(type, style: primaryTextStyle()),
                       ))
                   .toList(),
               onChanged: (val) {
@@ -622,6 +605,7 @@ class AddRealEstateServicesState extends State<AddRealEstateServices> {
                   value == null ? languages.hintRequired : null,
             ),
             16.height,
+            selectedPropertyType != 'Plot' ?
             AppTextField(
               controller: titleController,
               textFieldType: TextFieldType.NAME,
@@ -629,7 +613,7 @@ class AddRealEstateServicesState extends State<AddRealEstateServices> {
                   fillColor: context.scaffoldBackgroundColor,
                   hint: "Title eg: family house 2BHK"),
               validator: (val) => val!.isEmpty ? languages.hintRequired : null,
-            ),
+            ) : const SizedBox.shrink(),
             16.height,
             AppTextField(
               controller: locationController,
@@ -652,63 +636,111 @@ class AddRealEstateServicesState extends State<AddRealEstateServices> {
                         val!.isEmpty ? languages.hintRequired : null,
                   ),
                 ),
-                16.width,
-                Expanded(
-                    child: DropdownButtonFormField<String>(
-                  value: furnishingTypes.contains(selectedFurnishingType)
-                      ? selectedFurnishingType
-                      : null,
-                  decoration: inputDecoration(
-                    context,
-                    fillColor: context.scaffoldBackgroundColor,
-                    hint: "Furnishing",
-                  ),
-                  isExpanded: true,
-                  dropdownColor: context.cardColor,
-                  items: furnishingTypes
-                      .map((status) => DropdownMenuItem(
-                            value: status,
-                            child: Text(status, style: primaryTextStyle()),
-                          ))
-                      .toList(),
-                  onChanged: (val) {
-                    setState(() {
-                      selectedFurnishingType = val;
-                    });
-                  },
-                  validator: (value) =>
-                      value == null ? languages.hintRequired : null,
-                ))
+                 if (selectedPropertyType != 'Plot') ...[
+      16.width,
+      Expanded(
+        child: DropdownButtonFormField<String>(
+          value: furnishingTypes.contains(selectedFurnishingType)
+              ? selectedFurnishingType
+              : null,
+          decoration: inputDecoration(
+            context,
+            fillColor: context.scaffoldBackgroundColor,
+            hint: "Furnishing",
+          ),
+          isExpanded: true,
+          dropdownColor: context.cardColor,
+          items: furnishingTypes
+              .map((status) => DropdownMenuItem(
+                    value: status,
+                    child: Text(status, style: primaryTextStyle()),
+                  ))
+              .toList(),
+          onChanged: (val) {
+            setState(() {
+              selectedFurnishingType = val;
+            });
+          },
+          validator: (value) =>
+              value == null ? languages.hintRequired : null,
+        ),
+      ),
+    ]
               ],
             ),
             16.height,
-            Row(
-              children: [
-                Expanded(
-                  child: AppTextField(
+            // Row(
+            //   children: [
+            //     Expanded(
+            //       child: AppTextField(
+            //         controller: rentController,
+            //         textFieldType: TextFieldType.NUMBER,
+            //         decoration: inputDecoration(context,
+            //             fillColor: context.scaffoldBackgroundColor,
+            //             hint: "Monthly rent"),
+            //         validator: (val) =>
+            //             val!.isEmpty ? languages.hintRequired : null,
+            //       ),
+            //     ),
+            //     16.width,
+            //     Expanded(
+            //       child: AppTextField(
+            //         controller: depositController,
+            //         textFieldType: TextFieldType.NUMBER,
+            //         decoration: inputDecoration(context,
+            //             fillColor: context.scaffoldBackgroundColor,
+            //             hint: "Security Despoit"),
+            //         validator: (val) =>
+            //             val!.isEmpty ? languages.hintRequired : null,
+            //       ),
+            //     ),
+            //   ],
+            // ),
+
+            selectedType == "Sell" || selectedType == 'Rent' && selectedPropertyType == 'Plot'
+                ? AppTextField(
                     controller: rentController,
                     textFieldType: TextFieldType.NUMBER,
-                    decoration: inputDecoration(context,
-                        fillColor: context.scaffoldBackgroundColor,
-                        hint: "Monthly rent"),
+                    decoration: inputDecoration(
+                      context,
+                      fillColor: context.scaffoldBackgroundColor,
+                      hint: "Price",
+                    ),
                     validator: (val) =>
                         val!.isEmpty ? languages.hintRequired : null,
+                  )
+                : Row(
+                    children: [
+                      Expanded(
+                        child: AppTextField(
+                          controller: rentController,
+                          textFieldType: TextFieldType.NUMBER,
+                          decoration: inputDecoration(
+                            context,
+                            fillColor: context.scaffoldBackgroundColor,
+                            hint: "Monthly rent",
+                          ),
+                          validator: (val) =>
+                              val!.isEmpty ? languages.hintRequired : null,
+                        ),
+                      ),
+                      16.width,
+                      Expanded(
+                        child: AppTextField(
+                          controller: depositController,
+                          textFieldType: TextFieldType.NUMBER,
+                          decoration: inputDecoration(
+                            context,
+                            fillColor: context.scaffoldBackgroundColor,
+                            hint: "Security Deposit",
+                          ),
+                          validator: (val) =>
+                              val!.isEmpty ? languages.hintRequired : null,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                16.width,
-                Expanded(
-                  child: AppTextField(
-                    controller: depositController,
-                    textFieldType: TextFieldType.NUMBER,
-                    decoration: inputDecoration(context,
-                        fillColor: context.scaffoldBackgroundColor,
-                        hint: "Security Despoit"),
-                    validator: (val) =>
-                        val!.isEmpty ? languages.hintRequired : null,
-                  ),
-                ),
-              ],
-            ),
+
             16.height,
             AppTextField(
               controller: descriptionController,

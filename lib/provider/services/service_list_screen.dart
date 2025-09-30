@@ -110,7 +110,7 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
         languages.lblAllService,
         textColor: white,
         color: context.primaryColor,
-        backWidget: BackWidget(),
+        backWidget: BackWidget(goToHome: true),
         textSize: APP_BAR_TEXT_SIZE,
         actions: [
           IconButton(

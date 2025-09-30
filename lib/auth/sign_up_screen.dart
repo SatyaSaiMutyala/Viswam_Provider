@@ -46,6 +46,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   TextEditingController mobileCont = TextEditingController();
   TextEditingController passwordCont = TextEditingController();
   TextEditingController designationCont = TextEditingController();
+  TextEditingController refIdCont = TextEditingController();
 
   /// FocusNodes
   FocusNode fNameFocus = FocusNode();
@@ -57,10 +58,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
   FocusNode typeFocus = FocusNode();
   FocusNode passwordFocus = FocusNode();
   FocusNode designationFocus = FocusNode();
+  FocusNode refIdFocus = FocusNode();
 
   String? selectedUserTypeValue;
 
-  List<UserTypeData> commissionTypeList = [UserTypeData(name: languages.lblSelectCommission, id: -1)];
+  List<UserTypeData> commissionTypeList = [
+    UserTypeData(name: languages.lblSelectCommission, id: -1)
+  ];
 
   UserTypeData? selectedUserCommissionType;
 
@@ -74,6 +78,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
   int? selectedProviderId;
 
   @override
+  void initState() {
+    super.initState();
+    selectedUserTypeValue = USER_TYPE_PROVIDER;
+    getCommissionType(type: selectedUserTypeValue!).then((value) {
+      commissionTypeList = value.userTypeData.validate();
+      _valueNotifier.notifyListeners();
+    }).catchError((e) {
+      commissionTypeList = [
+        UserTypeData(name: languages.lblSelectCommission, id: -1)
+      ];
+      log(e.toString());
+    });
+  }
+
+  @override
   void dispose() {
     super.dispose();
 
@@ -84,6 +103,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     mobileCont.dispose();
     passwordCont.dispose();
     designationCont.dispose();
+    refIdCont.dispose();
 
     fNameFocus.dispose();
     lNameFocus.dispose();
@@ -94,6 +114,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     typeFocus.dispose();
     passwordFocus.dispose();
     designationFocus.dispose();
+    refIdFocus.dispose();
   }
 
   //----------------------------------- UI -----------------------------------//
@@ -116,7 +137,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               child: BackWidget(color: context.iconColor)),
           scrolledUnderElevation: 0,
-          systemOverlayStyle: SystemUiOverlayStyle(statusBarIconBrightness: appStore.isDarkMode ? Brightness.light : Brightness.dark, statusBarColor: context.scaffoldBackgroundColor),
+          systemOverlayStyle: SystemUiOverlayStyle(
+              statusBarIconBrightness:
+                  appStore.isDarkMode ? Brightness.light : Brightness.dark,
+              statusBarColor: context.scaffoldBackgroundColor),
         ),
         body: Stack(
           alignment: AlignmentDirectional.center,
@@ -135,7 +159,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
               ),
             ),
-            Observer(builder: (context) => LoaderWidget().center().visible(appStore.isLoading))
+            Observer(
+                builder: (context) =>
+                    LoaderWidget().center().visible(appStore.isLoading))
           ],
         ),
       ),
@@ -151,7 +177,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
         Container(
           width: 85,
           height: 85,
-          decoration: boxDecorationWithRoundedCorners(boxShape: BoxShape.circle, backgroundColor: primaryColor),
+          decoration: boxDecorationWithRoundedCorners(
+              boxShape: BoxShape.circle, backgroundColor: primaryColor),
           child: Image.asset(profile, height: 45, width: 45, color: white),
         ),
         16.height,
@@ -177,7 +204,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           focus: fNameFocus,
           nextFocus: lNameFocus,
           errorThisFieldRequired: languages.hintRequired,
-          decoration: inputDecoration(context, hint: languages.hintFirstNameTxt),
+          decoration:
+              inputDecoration(context, hint: languages.hintFirstNameTxt),
           suffix: profile.iconImage(size: 10).paddingAll(14),
         ),
         16.height,
@@ -210,7 +238,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           focus: emailFocus,
           nextFocus: mobileFocus,
           errorThisFieldRequired: languages.hintRequired,
-          decoration: inputDecoration(context, hint: languages.hintEmailAddressTxt),
+          decoration:
+              inputDecoration(context, hint: languages.hintEmailAddressTxt),
           suffix: ic_message.iconImage(size: 10).paddingAll(14),
         ),
         16.height,
@@ -242,16 +271,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
             10.width,
             // Mobile number text field...
             AppTextField(
-              textFieldType: isAndroid ? TextFieldType.PHONE : TextFieldType.NAME,
+              textFieldType: TextFieldType.PHONE,
               controller: mobileCont,
               focus: mobileFocus,
               errorThisFieldRequired: languages.hintRequired,
               nextFocus: passwordFocus,
-              decoration: inputDecoration(context, hint: '${languages.hintContactNumberTxt}').copyWith(
+              decoration: inputDecoration(context,
+                      hint: '${languages.hintContactNumberTxt}')
+                  .copyWith(
                 hintText: '${languages.lblExample}: ${selectedCountry.example}',
                 hintStyle: secondaryTextStyle(),
               ),
-              maxLength: 15,
+              maxLength: 10,
               suffix: calling.iconImage(size: 10).paddingAll(14),
             ).expand(),
           ],
@@ -269,55 +300,58 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         16.height,
         // User role text field...
-        ValueListenableBuilder(
-          valueListenable: _valueNotifier,
-          builder: (context, value, child) => DropdownButtonFormField<String>(
-            items: [
-              DropdownMenuItem(
-                child: Text(languages.provider, style: primaryTextStyle()),
-                value: USER_TYPE_PROVIDER,
-              ),
-              DropdownMenuItem(
-                child: Text(languages.handyman, style: primaryTextStyle()),
-                value: USER_TYPE_HANDYMAN,
-              ),
-            ],
-            focusNode: userTypeFocus,
-            dropdownColor: context.cardColor,
-            decoration: inputDecoration(context, hint: languages.userRole),
-            value: selectedUserTypeValue,
-            validator: (value) {
-              if (value == null) return errorThisFieldRequired;
-              return null;
-            },
-            onChanged: (c) {
-              hideKeyboard(context);
-              selectedUserTypeValue = c.validate();
-              setState(() {});
+        // ValueListenableBuilder(
+        //   valueListenable: _valueNotifier,
+        //   builder: (context, value, child) => DropdownButtonFormField<String>(
+        //     items: [
+        //       DropdownMenuItem(
+        //         child: Text(languages.provider, style: primaryTextStyle()),
+        //         value: USER_TYPE_PROVIDER,
+        //       ),
+        //       // DropdownMenuItem(
+        //       //   child: Text(languages.handyman, style: primaryTextStyle()),
+        //       //   value: USER_TYPE_HANDYMAN,
+        //       // ),
+        //     ],
+        //     focusNode: userTypeFocus,
+        //     dropdownColor: context.cardColor,
+        //     decoration: inputDecoration(context, hint: languages.userRole),
+        //     value: selectedUserTypeValue,
+        //     validator: (value) {
+        //       if (value == null) return errorThisFieldRequired;
+        //       return null;
+        //     },
+        //     onChanged: (c) {
+        //       hideKeyboard(context);
+        //       selectedUserTypeValue = c.validate();
+        //       setState(() {});
 
-              if (selectedProvider != null) {
-                selectedProvider = null;
-                setState(() {});
-              }
+        //       if (selectedProvider != null) {
+        //         selectedProvider = null;
+        //         setState(() {});
+        //       }
 
-              commissionTypeList.clear();
-              selectedUserCommissionType = null;
+        //       commissionTypeList.clear();
+        //       selectedUserCommissionType = null;
 
-              getCommissionType(type: selectedUserTypeValue!).then((value) {
-                commissionTypeList = value.userTypeData.validate();
+        //       getCommissionType(type: selectedUserTypeValue!).then((value) {
+        //         commissionTypeList = value.userTypeData.validate();
 
-                _valueNotifier.notifyListeners();
-              }).catchError((e) {
-                commissionTypeList = [UserTypeData(name: languages.lblSelectCommission, id: -1)];
-                log(e.toString());
-              });
-            },
-          ),
-        ),
+        //         _valueNotifier.notifyListeners();
+        //       }).catchError((e) {
+        //         commissionTypeList = [
+        //           UserTypeData(name: languages.lblSelectCommission, id: -1)
+        //         ];
+        //         log(e.toString());
+        //       });
+        //     },
+        //   ),
+        // ),
         if (selectedUserTypeValue != USER_TYPE_HANDYMAN) 16.height,
         if (selectedUserTypeValue == USER_TYPE_HANDYMAN)
           Container(
-            decoration: boxDecorationDefault(color: context.cardColor, borderRadius: radius()),
+            decoration: boxDecorationDefault(
+                color: context.cardColor, borderRadius: radius()),
             padding: EdgeInsets.only(
               top: selectedProvider != null ? 16 : 0,
               bottom: selectedProvider != null ? 16 : 0,
@@ -336,7 +370,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(languages.selectedProvider, style: secondaryTextStyle()).paddingOnly(bottom: 8),
+                        Text(languages.selectedProvider,
+                                style: secondaryTextStyle())
+                            .paddingOnly(bottom: 8),
                         Row(
                           children: [
                             CachedImageWidget(
@@ -366,12 +402,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       commissionTypeList.clear();
                       selectedUserCommissionType = null;
 
-                      getCommissionType(type: selectedUserTypeValue!).then((value) {
+                      getCommissionType(type: selectedUserTypeValue!)
+                          .then((value) {
                         commissionTypeList = value.userTypeData.validate();
 
                         _valueNotifier.notifyListeners();
                       }).catchError((e) {
-                        commissionTypeList = [UserTypeData(name: languages.lblSelectCommission, id: -1)];
+                        commissionTypeList = [
+                          UserTypeData(
+                              name: languages.lblSelectCommission, id: -1)
+                        ];
                         log(e.toString());
                       });
                     },
@@ -390,7 +430,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
         // Select user type text field...
         ValueListenableBuilder(
           valueListenable: _valueNotifier,
-          builder: (context, value, child) => DropdownButtonFormField<UserTypeData>(
+          builder: (context, value, child) =>
+              DropdownButtonFormField<UserTypeData>(
             onChanged: (UserTypeData? val) {
               selectedUserCommissionType = val;
               _valueNotifier.notifyListeners();
@@ -403,7 +444,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 : null,
             value: selectedUserCommissionType,
             dropdownColor: context.cardColor,
-            decoration: inputDecoration(context, hint: languages.lblSelectCommission),
+            decoration:
+                inputDecoration(context, hint: languages.lblSelectCommission),
             items: List.generate(
               commissionTypeList.length,
               (index) {
@@ -420,7 +462,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           style: primaryTextStyle(),
                         )
                       else if (data.type == COMMISSION_TYPE_FIXED)
-                        Text('(${data.commission.validate().toPriceFormat()})', style: primaryTextStyle()),
+                        Text('(${data.commission.validate().toPriceFormat()})',
+                            style: primaryTextStyle()),
                     ],
                   ),
                   value: data,
@@ -436,8 +479,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
           controller: passwordCont,
           focus: passwordFocus,
           obscureText: true,
-          suffixPasswordVisibleWidget: ic_show.iconImage(size: 10).paddingAll(14),
-          suffixPasswordInvisibleWidget: ic_hide.iconImage(size: 10).paddingAll(14),
+          suffixPasswordVisibleWidget:
+              ic_show.iconImage(size: 10).paddingAll(14),
+          suffixPasswordInvisibleWidget:
+              ic_hide.iconImage(size: 10).paddingAll(14),
           errorThisFieldRequired: languages.hintRequired,
           decoration: inputDecoration(context, hint: languages.hintPassword),
           isValidationRequired: true,
@@ -453,6 +498,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
             saveUser();
           },
         ),
+        16.height,
+        AppTextField(
+          textFieldType: TextFieldType.USERNAME,
+          controller: refIdCont,
+          isValidationRequired: false,
+          focus: refIdFocus,
+          decoration: inputDecoration(context, hint: languages.lblrefid),
+          suffix: profile.iconImage(size: 10).paddingAll(14),
+        ),
+        16.height,
         20.height,
         _buildTcAcceptWidget(),
         8.height,
@@ -473,7 +528,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   // Pick a Provider
   void pickProvider() async {
-    UserData? user = await ProviderListScreen(status: '$USER_STATUS_CODE').launch(context);
+    UserData? user =
+        await ProviderListScreen(status: '$USER_STATUS_CODE').launch(context);
 
     if (user != null) {
       selectedProvider = user;
@@ -483,12 +539,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
       commissionTypeList.clear();
       selectedUserCommissionType = null;
 
-      getCommissionType(type: selectedUserTypeValue!, providerId: selectedProviderId).then((value) {
+      getCommissionType(
+              type: selectedUserTypeValue!, providerId: selectedProviderId)
+          .then((value) {
         commissionTypeList = value.userTypeData.validate();
 
         _valueNotifier.notifyListeners();
       }).catchError((e) {
-        commissionTypeList = [UserTypeData(name: languages.lblSelectCommission, id: -1)];
+        commissionTypeList = [
+          UserTypeData(name: languages.lblSelectCommission, id: -1)
+        ];
         log(e.toString());
       });
     }
@@ -502,7 +562,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       children: [
         ValueListenableBuilder(
           valueListenable: _valueNotifier,
-          builder: (context, value, child) => SelectedItemWidget(isSelected: isAcceptedTc).onTap(() async {
+          builder: (context, value, child) =>
+              SelectedItemWidget(isSelected: isAcceptedTc).onTap(() async {
             isAcceptedTc = !isAcceptedTc;
             _valueNotifier.notifyListeners();
           }),
@@ -510,13 +571,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
         16.width,
         RichTextWidget(
           list: [
-            TextSpan(text: '${languages.lblIAgree} ', style: secondaryTextStyle()),
+            TextSpan(
+                text: '${languages.lblIAgree} ', style: secondaryTextStyle()),
             TextSpan(
               text: languages.lblTermsOfService,
               style: boldTextStyle(color: primaryColor),
               recognizer: TapGestureRecognizer()
                 ..onTap = () {
-                  checkIfLink(context, appConfigurationStore.termConditions, title: languages.lblTermsAndConditions);
+                  checkIfLink(context, appConfigurationStore.termConditions,
+                      title: languages.lblTermsAndConditions);
                 },
             ),
             TextSpan(text: ' & ', style: secondaryTextStyle()),
@@ -525,7 +588,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
               style: boldTextStyle(color: primaryColor),
               recognizer: TapGestureRecognizer()
                 ..onTap = () {
-                  checkIfLink(context, appConfigurationStore.privacyPolicy, title: languages.lblPrivacyPolicy);
+                  checkIfLink(context, appConfigurationStore.privacyPolicy,
+                      title: languages.lblPrivacyPolicy);
                 },
             ),
           ],
@@ -541,7 +605,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
         16.height,
         RichTextWidget(
           list: [
-            TextSpan(text: "${languages.alreadyHaveAccountTxt}? ", style: secondaryTextStyle()),
+            TextSpan(
+                text: "${languages.alreadyHaveAccountTxt}? ",
+                style: secondaryTextStyle()),
             TextSpan(
               text: languages.signIn,
               style: boldTextStyle(color: primaryColor),
@@ -570,12 +636,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
           prefixIcon: const Icon(Icons.search),
           border: OutlineInputBorder(
             borderSide: BorderSide(
-              color: const Color(0xFF8C98A8).withValues(alpha:0.2),
+              color: const Color(0xFF8C98A8).withValues(alpha: 0.2),
             ),
           ),
         ),
       ),
-      showPhoneCode: true, // optional. Shows phone code before the country name.
+      showPhoneCode:
+          true, // optional. Shows phone code before the country name.
       onSelect: (Country country) {
         selectedCountry = country;
         _valueNotifier.notifyListeners();
@@ -595,7 +662,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   // Sign up user
   void saveUser() async {
     if (formKey.currentState!.validate()) {
-      if (selectedUserCommissionType == null || selectedUserCommissionType!.id == -1) {
+      if (selectedUserCommissionType == null ||
+          selectedUserCommissionType!.id == -1) {
         return toast(languages.pleaseSelectCommission);
       }
 
@@ -616,6 +684,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           UserKeys.password: passwordCont.text.trim(),
           UserKeys.designation: designationCont.text.trim(),
           UserKeys.status: 0,
+          UserKeys.refId: refIdCont.text.trim(),
         };
         print(request);
         if (selectedProvider != null) {
@@ -623,9 +692,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
         }
 
         if (selectedUserTypeValue == USER_TYPE_PROVIDER) {
-          request.putIfAbsent(UserKeys.providerTypeId, () => selectedUserCommissionType!.id.toString());
+          request.putIfAbsent(UserKeys.providerTypeId,
+              () => selectedUserCommissionType!.id.toString());
         } else {
-          request.putIfAbsent(UserKeys.handymanTypeId, () => selectedUserCommissionType!.id.toString());
+          request.putIfAbsent(UserKeys.handymanTypeId,
+              () => selectedUserCommissionType!.id.toString());
         }
 
         log(request);
@@ -634,7 +705,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           appStore.setLoading(false);
           toast(userRegisterData.message.validate());
 
-          push(SignInScreen(), isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
+          push(SignInScreen(),
+              isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
         }).catchError((e) {
           toast(e.toString(), print: true);
           appStore.setLoading(false);

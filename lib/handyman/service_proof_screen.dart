@@ -213,7 +213,7 @@ class ServiceProofScreenState extends State<ServiceProofScreen> {
                     controller: compliantCont,
                     minLines: 5,
                     isValidationRequired: true,
-                    enableChatGPT: appConfigurationStore.chatGPTStatus,
+                    // enableChatGPT: appConfigurationStore.chatGPTStatus,
                     promptFieldInputDecorationChatGPT: inputDecoration(context).copyWith(
                       hintText: languages.writeHere,
                       fillColor: context.scaffoldBackgroundColor,

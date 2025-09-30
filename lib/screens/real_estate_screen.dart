@@ -4,11 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:http/http.dart' as http;
 
+import '../components/app_widgets.dart';
+import '../components/empty_error_state_widget.dart';
 import '../main.dart';
 import '../models/realestate_service.modal.dart';
 import '../networks/network_utils.dart';
+import '../provider/controllers/get_subscription_controller.dart';
 import '../utils/configs.dart';
 import 'real_estate/add_services.dart';
+import 'real_estate/subscribtion_promotion.dart';
 
 class RealEstate extends StatefulWidget {
   const RealEstate({super.key});
@@ -20,11 +24,29 @@ class RealEstate extends StatefulWidget {
 class _RealEstateState extends State<RealEstate> {
   List<RealEstateServiceModel> realEstates = [];
   bool isLoading = false;
+  bool? isSubscribed;
 
   @override
   void initState() {
     super.initState();
+    String id = appStore.userId.toString();
+    fetchSubscriptionStatus(id);
     fetchRealEstates();
+  }
+
+  Future<void> fetchSubscriptionStatus(String id) async {
+    setState(() => isSubscribed = null);
+    try {
+      final response = await getSubscriptionStatus(id);
+      if (response['status'] == true) {
+        setState(() => isSubscribed = response['subscribe'] == true);
+      } else {
+        setState(() => isSubscribed = false);
+      }
+    } catch (e) {
+      log('Subscription check failed: $e');
+      setState(() => isSubscribed = false);
+    }
   }
 
   Future<void> fetchRealEstates() async {
@@ -152,31 +174,31 @@ class _RealEstateState extends State<RealEstate> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        'Rent',
+                        model.type ?? 'Rent',
                         style: TextStyle(
                             color: Colors.black, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
-                  Positioned(
-                    top: 10,
-                    right: 10,
-                    child: GestureDetector(
-                      onTap: () {},
-                      child: Container(
-                        padding: EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.share,
-                          size: 20,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ),
-                  ),
+                  // Positioned(
+                  //   top: 10,
+                  //   right: 10,
+                  //   child: GestureDetector(
+                  //     onTap: () {},
+                  //     child: Container(
+                  //       padding: EdgeInsets.all(6),
+                  //       decoration: BoxDecoration(
+                  //         color: Colors.white.withOpacity(0.9),
+                  //         shape: BoxShape.circle,
+                  //       ),
+                  //       child: Icon(
+                  //         Icons.share,
+                  //         size: 20,
+                  //         color: Colors.black87,
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
               Padding(
@@ -219,11 +241,15 @@ class _RealEstateState extends State<RealEstate> {
                                 style: primaryTextStyle(
                                     color: white,
                                     size: (width * 0.025).toInt())),
-                            Text(
-                                'Deposit ₹${(double.tryParse(model.securityDeposit.toString()) ?? 0).toStringAsFixed(2)}',
-                                style: primaryTextStyle(
-                                    color: white,
-                                    size: (width * 0.025).toInt())),
+                            model.type == 'Rent'
+                                ? Text(
+                                    'Deposit ₹${(double.tryParse(model.securityDeposit.toString()) ?? 0).toStringAsFixed(2)}',
+                                    style: primaryTextStyle(
+                                      color: white,
+                                      size: (width * 0.025).toInt(),
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
                           ],
                         ),
                       ),
@@ -233,7 +259,8 @@ class _RealEstateState extends State<RealEstate> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '₹${model.monthlyRent}/month',
+                          model.type == 'Rent' ?
+                          '₹${model.monthlyRent}/month' : 'Price ₹${model.monthlyRent}',
                           style: TextStyle(
                             fontSize: width * 0.035,
                             fontWeight: FontWeight.bold,
@@ -466,9 +493,31 @@ class _RealEstateState extends State<RealEstate> {
 
     return Scaffold(
       body: isLoading
-          ? Loader().center()
+          ? LoaderWidget().center()
           : realEstates.isEmpty
-              ? Text('No properties found').center()
+              ? AnimatedListView(
+                  key: UniqueKey(),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  listAnimationType: ListAnimationType.FadeIn,
+                  fadeInConfiguration: FadeInConfiguration(duration: 2.seconds),
+                  itemCount: realEstates.length,
+                  shrinkWrap: true,
+                  disposeScrollController: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  emptyWidget: SizedBox(
+                    width: context.width(),
+                    height: context.height() * 0.55,
+                    child: NoDataWidget(
+                      title: languages.noRealEstate,
+                      subTitle: languages.subNorealEstate,
+                      imageWidget: EmptyStateWidget(),
+                    ),
+                  ),
+                  itemBuilder: (context, index) {
+                    return buildCard(realEstates[index], width, height);
+                  },
+                )
               : ListView.builder(
                   itemCount: realEstates.length,
                   itemBuilder: (context, index) {
@@ -479,8 +528,25 @@ class _RealEstateState extends State<RealEstate> {
         backgroundColor: primaryColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
         onPressed: () {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => AddRealEstateServices()));
+          if (isSubscribed == false) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => TakeSubscriptionMessage()),
+            );
+          } else {
+            // Navigator.push(
+            //   context,
+            //   MaterialPageRoute(builder: (_) => AddRealEstateServices()),
+            // );
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => AddRealEstateServices()),
+            ).then((value) {
+              if (value == true) {
+                fetchRealEstates();
+              }
+            });
+          }
         },
         child: Icon(Icons.add, color: Colors.white),
       ),

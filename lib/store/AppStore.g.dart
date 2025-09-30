@@ -1012,6 +1012,14 @@ mixin _$AppStore on _AppStore, Store {
     return _$setAddressAsyncAction.run(() => super.setAddress(val));
   }
 
+    late final _$setRefIdAsyncAction =
+      AsyncAction('_AppStore.setRefId', context: context);
+
+  @override
+  Future<void> setRefId(String val) {
+    return _$setRefIdAsyncAction.run(() => super.setRefId(val));
+  }
+
   late final _$setFirstNameAsyncAction =
       AsyncAction('_AppStore.setFirstName', context: context);
 

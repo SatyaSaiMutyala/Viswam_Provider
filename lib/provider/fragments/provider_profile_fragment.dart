@@ -39,6 +39,8 @@ import 'package:nb_utils/nb_utils.dart';
 
 import '../../components/switch_push_notification_subscription_component.dart';
 import '../../helpDesk/help_desk_list_screen.dart';
+import '../../screens/becomeDealer.dart';
+import '../../screens/refAndEarnScreen.dart';
 import '../../screens/subscription_screen.dart';
 import '../earning/handyman_earning_list_screen.dart';
 import '../promotional_banner/promotional_banner_list_screen.dart';
@@ -136,17 +138,26 @@ class ProviderProfileFragmentState extends State<ProviderProfileFragment> {
                           ],
                         ),
                       24.width,
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Text(
-                            appStore.userFullName,
-                            style: boldTextStyle(color: primaryColor, size: 16),
-                          ),
-                          4.height,
-                          Text(appStore.userEmail, style: secondaryTextStyle()),
-                        ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Text(
+                              appStore.userFullName,
+                              style: boldTextStyle(color: primaryColor, size: 16),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                            4.height,
+                            Text(
+                              appStore.userEmail,
+                              style: secondaryTextStyle(),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -333,6 +344,28 @@ class ProviderProfileFragmentState extends State<ProviderProfileFragment> {
                         rolesAndPermissionStore.providerDocumentList)
                       SettingItemWidget(
                         decoration: BoxDecoration(color: context.cardColor),
+                        leading: Image.asset(ic_piggy_bank,
+                            height: 16,
+                            width: 16,
+                            color: appStore.isDarkMode
+                                ? white
+                                : appTextSecondaryColor),
+                        title: languages.btnReferal,
+                        titleTextStyle: boldTextStyle(size: 12),
+                        trailing: Icon(Icons.chevron_right,
+                            color: appStore.isDarkMode
+                                ? white
+                                : gray.withValues(alpha: 0.8),
+                            size: 18),
+                        padding: EdgeInsets.only(top: 20, left: 16, right: 16),
+                        onTap: () {
+                          ReferAndEarnScreen().launch(context);
+                        },
+                      ),
+                    if (appStore.userType != USER_TYPE_HANDYMAN &&
+                        rolesAndPermissionStore.providerDocumentList)
+                      SettingItemWidget(
+                        decoration: BoxDecoration(color: context.cardColor),
                         leading: Image.asset(ic_document,
                             height: 16,
                             width: 16,
@@ -427,50 +460,50 @@ class ProviderProfileFragmentState extends State<ProviderProfileFragment> {
                     //       HandymanCommissionTypeListScreen().launch(context);
                     //     },
                     //   ),
-                    if (appConfigurationStore.servicePackageStatus &&
-                        rolesAndPermissionStore.servicePackageList)
-                      SettingItemWidget(
-                        decoration: BoxDecoration(color: context.cardColor),
-                        leading: Image.asset(ic_packages,
-                            height: 16,
-                            width: 16,
-                            color: appStore.isDarkMode
-                                ? white
-                                : appTextSecondaryColor),
-                        title: languages.packages,
-                        titleTextStyle: boldTextStyle(size: 12),
-                        trailing: Icon(Icons.chevron_right,
-                            color: appStore.isDarkMode
-                                ? white
-                                : gray.withValues(alpha: 0.8),
-                            size: 18),
-                        padding: EdgeInsets.only(top: 20, left: 16, right: 16),
-                        onTap: () {
-                          PackageListScreen().launch(context);
-                        },
-                      ),
-                    if (appConfigurationStore.serviceAddonStatus &&
-                        rolesAndPermissionStore.serviceAddOnList)
-                      SettingItemWidget(
-                        decoration: BoxDecoration(color: context.cardColor),
-                        leading: Image.asset(ic_addon_service,
-                            height: 16,
-                            width: 16,
-                            color: appStore.isDarkMode
-                                ? white
-                                : appTextSecondaryColor),
-                        title: languages.addonServices,
-                        titleTextStyle: boldTextStyle(size: 12),
-                        trailing: Icon(Icons.chevron_right,
-                            color: appStore.isDarkMode
-                                ? white
-                                : gray.withValues(alpha: 0.8),
-                            size: 18),
-                        padding: EdgeInsets.only(top: 20, left: 16, right: 16),
-                        onTap: () {
-                          AddonServiceListScreen().launch(context);
-                        },
-                      ),
+                    // if (appConfigurationStore.servicePackageStatus &&
+                    //     rolesAndPermissionStore.servicePackageList)
+                    //   SettingItemWidget(
+                    //     decoration: BoxDecoration(color: context.cardColor),
+                    //     leading: Image.asset(ic_packages,
+                    //         height: 16,
+                    //         width: 16,
+                    //         color: appStore.isDarkMode
+                    //             ? white
+                    //             : appTextSecondaryColor),
+                    //     title: languages.packages,
+                    //     titleTextStyle: boldTextStyle(size: 12),
+                    //     trailing: Icon(Icons.chevron_right,
+                    //         color: appStore.isDarkMode
+                    //             ? white
+                    //             : gray.withValues(alpha: 0.8),
+                    //         size: 18),
+                    //     padding: EdgeInsets.only(top: 20, left: 16, right: 16),
+                    //     onTap: () {
+                    //       PackageListScreen().launch(context);
+                    //     },
+                    //   ),
+                    // if (appConfigurationStore.serviceAddonStatus &&
+                    //     rolesAndPermissionStore.serviceAddOnList)
+                    //   SettingItemWidget(
+                    //     decoration: BoxDecoration(color: context.cardColor),
+                    //     leading: Image.asset(ic_addon_service,
+                    //         height: 16,
+                    //         width: 16,
+                    //         color: appStore.isDarkMode
+                    //             ? white
+                    //             : appTextSecondaryColor),
+                    //     title: languages.addonServices,
+                    //     titleTextStyle: boldTextStyle(size: 12),
+                    //     trailing: Icon(Icons.chevron_right,
+                    //         color: appStore.isDarkMode
+                    //             ? white
+                    //             : gray.withValues(alpha: 0.8),
+                    //         size: 18),
+                    //     padding: EdgeInsets.only(top: 20, left: 16, right: 16),
+                    //     onTap: () {
+                    //       AddonServiceListScreen().launch(context);
+                    //     },
+                    //   ),
                     if (appConfigurationStore.slotServiceStatus)
                       SettingItemWidget(
                         decoration: BoxDecoration(color: context.cardColor),
@@ -512,6 +545,27 @@ class ProviderProfileFragmentState extends State<ProviderProfileFragment> {
                         ServiceAddressesScreen().launch(context);
                       },
                     ),
+                    if (appStore.isLoggedIn)
+                      SettingItemWidget(
+                        decoration: BoxDecoration(color: context.cardColor),
+                        leading: Image.asset(ic_packages,
+                            height: 16,
+                            width: 16,
+                            color: appStore.isDarkMode
+                                ? white
+                                : appTextSecondaryColor),
+                        title: 'Become a Dealer',
+                        titleTextStyle: boldTextStyle(size: 12),
+                        trailing: Icon(Icons.chevron_right,
+                            color: appStore.isDarkMode
+                                ? white
+                                : gray.withValues(alpha: 0.8),
+                            size: 18),
+                        padding: EdgeInsets.only(top: 20, left: 16, right: 16),
+                        onTap: () {
+                          BecomeProviderLevel().launch(context);
+                        },
+                      ),
                     if (rolesAndPermissionStore.postJobList)
                       SettingItemWidget(
                         decoration: BoxDecoration(color: context.cardColor),
@@ -691,50 +745,50 @@ class ProviderProfileFragmentState extends State<ProviderProfileFragment> {
                   divider: Offstage(),
                   items: [
                     8.height,
-                    SettingItemWidget(
-                      decoration: BoxDecoration(color: context.cardColor),
-                      leading: Image.asset(ic_theme,
-                          height: 16,
-                          width: 14,
-                          color: appStore.isDarkMode
-                              ? white
-                              : appTextSecondaryColor),
-                      title: languages.appTheme,
-                      titleTextStyle: boldTextStyle(size: 12),
-                      trailing: Icon(Icons.chevron_right,
-                          color: appStore.isDarkMode
-                              ? white
-                              : gray.withValues(alpha: 0.8),
-                          size: 18),
-                      padding: EdgeInsets.only(top: 20, left: 16, right: 16),
-                      onTap: () async {
-                        await showInDialog(
-                          context,
-                          builder: (context) => ThemeSelectionDaiLog(context),
-                          contentPadding: EdgeInsets.zero,
-                        );
-                      },
-                    ),
-                    SettingItemWidget(
-                      decoration: BoxDecoration(color: context.cardColor),
-                      leading: Image.asset(language,
-                          height: 16,
-                          width: 16,
-                          color: appStore.isDarkMode
-                              ? white
-                              : appTextSecondaryColor),
-                      title: languages.language,
-                      titleTextStyle: boldTextStyle(size: 12),
-                      trailing: Icon(Icons.chevron_right,
-                          color: appStore.isDarkMode
-                              ? white
-                              : gray.withValues(alpha: 0.8),
-                          size: 18),
-                      padding: EdgeInsets.only(top: 20, left: 16, right: 16),
-                      onTap: () {
-                        LanguagesScreen().launch(context);
-                      },
-                    ),
+                    // SettingItemWidget(
+                    //   decoration: BoxDecoration(color: context.cardColor),
+                    //   leading: Image.asset(ic_theme,
+                    //       height: 16,
+                    //       width: 14,
+                    //       color: appStore.isDarkMode
+                    //           ? white
+                    //           : appTextSecondaryColor),
+                    //   title: languages.appTheme,
+                    //   titleTextStyle: boldTextStyle(size: 12),
+                    //   trailing: Icon(Icons.chevron_right,
+                    //       color: appStore.isDarkMode
+                    //           ? white
+                    //           : gray.withValues(alpha: 0.8),
+                    //       size: 18),
+                    //   padding: EdgeInsets.only(top: 20, left: 16, right: 16),
+                    //   onTap: () async {
+                    //     await showInDialog(
+                    //       context,
+                    //       builder: (context) => ThemeSelectionDaiLog(context),
+                    //       contentPadding: EdgeInsets.zero,
+                    //     );
+                    //   },
+                    // ),
+                    // SettingItemWidget(
+                    //   decoration: BoxDecoration(color: context.cardColor),
+                    //   leading: Image.asset(language,
+                    //       height: 16,
+                    //       width: 16,
+                    //       color: appStore.isDarkMode
+                    //           ? white
+                    //           : appTextSecondaryColor),
+                    //   title: languages.language,
+                    //   titleTextStyle: boldTextStyle(size: 12),
+                    //   trailing: Icon(Icons.chevron_right,
+                    //       color: appStore.isDarkMode
+                    //           ? white
+                    //           : gray.withValues(alpha: 0.8),
+                    //       size: 18),
+                    //   padding: EdgeInsets.only(top: 20, left: 16, right: 16),
+                    //   onTap: () {
+                    //     LanguagesScreen().launch(context);
+                    //   },
+                    // ),
                     SettingItemWidget(
                       decoration: BoxDecoration(color: context.cardColor),
                       leading: Image.asset(changePassword,

@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" package="com.viswam.provider">
+    xmlns:tools="http://schemas.android.com/tools" package="com.viswam9.provider">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -20,7 +20,7 @@
     </queries>
     <application
         android:icon="@mipmap/ic_launcher"
-        android:label="Viswam-Provider"
+        android:label="Viswam9-Provider"
         tools:replace="android:label">
 
         <meta-data

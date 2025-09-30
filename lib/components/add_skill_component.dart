@@ -56,7 +56,7 @@ class _AddSkillComponentState extends State<AddSkillComponent> {
           AppTextField(
             textFieldType: TextFieldType.NAME,
             controller: skillsCont,
-            decoration: inputDecoration(context, hint: languages.essentialSkills,fillColor: Colors.black),
+            decoration: inputDecoration(context, hint: languages.essentialSkills),
           ).paddingAll(16),
           16.height,
           AppButton(

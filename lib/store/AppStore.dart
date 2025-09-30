@@ -94,6 +94,9 @@ abstract class _AppStore with Store {
   String address = getStringAsync(ADDRESS);
 
   @observable
+  String refId = getStringAsync(REFID);
+
+  @observable
   String designation = getStringAsync(DESIGNATION);
 
   @observable
@@ -366,6 +369,12 @@ abstract class _AppStore with Store {
   Future<void> setAddress(String val) async {
     address = val;
     await setValue(ADDRESS, val);
+  }
+
+  @action
+  Future<void> setRefId(String val) async {
+    refId = val;
+    await setValue(REFID, val);
   }
 
   @action

@@ -14,6 +14,9 @@ import 'multi_language_request_model.dart';
 class ServiceData {
   int? id;
   String? name;
+  int? mainCategoryId;
+  String? companyName;
+  String? phoneNumber;
   int? categoryId;
   int? subCategoryId;
   int? providerId;
@@ -85,6 +88,9 @@ class ServiceData {
     this.name,
     this.imageAttachments,
     this.providerSlotData,
+    this.mainCategoryId,
+    this.companyName,
+    this.phoneNumber,
     this.categoryId,
     this.providerId,
     this.price,
@@ -134,6 +140,9 @@ class ServiceData {
     id = json['id'];
     name = json['name'];
     providerImage = json['provider_image'];
+    mainCategoryId = json['main_category_id'];
+    companyName = json['company_name'];
+    phoneNumber = json['phone_number'];
     categoryId = json['category_id'];
     subCategoryId = json['subcategory_id'];
     providerId = json['provider_id'];
@@ -192,6 +201,9 @@ class ServiceData {
     data['id'] = this.id;
     data['name'] = this.name;
     data['provider_image'] = this.providerImage;
+    data['main_category_id'] = this.mainCategoryId;
+    data['company_name'] = this.companyName;
+    data['phone_number'] = this.phoneNumber;
     data['category_id'] = this.categoryId;
     data['provider_id'] = this.providerId;
     data['is_slot'] = this.isSlot;

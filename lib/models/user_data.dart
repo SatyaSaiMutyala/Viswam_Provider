@@ -51,6 +51,7 @@ class UserData {
   int? isOnline;
   List<String>? userRole;
   ProviderSubscriptionModel? subscription;
+  String? refId;
 
   int? isEmailVerified;
 
@@ -159,6 +160,7 @@ class UserData {
     this.totalBooking,
     this.handymanImage,
     this.isVerifiedHandyman = 0,
+    this.refId,
   });
 
   UserData.fromJson(Map<String, dynamic> json) {
@@ -212,6 +214,7 @@ class UserData {
     totalBooking= json['total_services_booked'];
     handymanImage = json['handyman_image'];
     isVerifiedHandyman = json['is_verified'];
+    refId = json['ref_id'];
   }
 
   Map<String, dynamic> toJson() {
@@ -265,6 +268,7 @@ class UserData {
     if (this.totalBooking != null) data['total_services_booked'] = this.totalBooking;
     if (this.handymanImage != null) data['handyman_image'] = this.handymanImage;
     if (this.isVerifiedHandyman != null) data['is_verified'] = this.isVerifiedHandyman;
+    if(this.refId != null) data['ref_id'] = this.refId;
 
     if (this.subscription != null) {
       data['subscription'] = this.subscription!.toJson();

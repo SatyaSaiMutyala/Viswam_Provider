@@ -161,7 +161,7 @@ class _AddBlogScreenState extends State<AddBlogScreen> {
               controller: descriptionCont,
               focus: descriptionFocus,
               isValidationRequired: true,
-              enableChatGPT: appConfigurationStore.chatGPTStatus,
+              // enableChatGPT: appConfigurationStore.chatGPTStatus,
               promptFieldInputDecorationChatGPT: inputDecoration(context).copyWith(
                 hintText: languages.writeHere,
                 fillColor: context.scaffoldBackgroundColor,

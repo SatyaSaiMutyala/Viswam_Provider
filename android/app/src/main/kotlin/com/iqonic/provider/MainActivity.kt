@@ -1,4 +1,4 @@
-package com.viswam.provider
+package com.viswam9.provider
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

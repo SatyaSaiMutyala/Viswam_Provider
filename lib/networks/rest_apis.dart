@@ -112,9 +112,7 @@ Future<void> logout(BuildContext context) async {
                         });
                         await clearPreferences();
                         if (appConfigurationStore.isInAppPurchaseEnable) await inAppPurchaseService.logoutToRevenueCate();
-
                         appStore.setLoading(false);
-
                         SignInScreen().launch(context, isNewTask: true, pageRouteAnimation: PageRouteAnimation.Fade);
                       } else {
                         toast(errorInternetNotAvailable);
@@ -219,6 +217,7 @@ Future<void> saveUserData(UserData data) async {
     await appStore.setStateId(data.stateId.validate());
     await appStore.setDesignation(data.designation.validate());
     await appStore.setAddress(data.address.validate().isNotEmpty ? data.address.validate() : '');
+    await appStore.setRefId(data.refId.validate());
 
     await appStore.setCityId(data.cityId.validate());
     await appStore.setProviderId(data.providerId.validate());
@@ -291,6 +290,25 @@ Future<List<CityListResponse>> getCityList(Map request) async {
   return res.map((e) => CityListResponse.fromJson(e)).toList();
 }
 //endregion
+
+//region Main Category API
+Future<CategoryResponse> getMainCategoryList({String perPage = ''}) async {
+  return CategoryResponse.fromJson(
+    await handleResponse(
+      await buildHttpResponse('maincategorieslist?per_page=$perPage', method: HttpMethodType.GET),
+    ),
+  );
+}
+//endregion
+
+Future<CategoryResponse> getCategoryListByMain({required int mainCategoryId}) async {
+  return CategoryResponse.fromJson(
+    await handleResponse(
+      await buildHttpResponse('category-list?main_category_id=$mainCategoryId', method: HttpMethodType.GET),
+    ),
+  );
+}
+
 
 //region Category API
 Future<CategoryResponse> getCategoryList({String perPage = ''}) async {
@@ -576,9 +594,11 @@ Future<void> addServiceMultiPart({required Map<String, dynamic> value, List<int>
     finish(getContext, true);
   }, onError: (error) {
     toast(error.toString(), print: true);
+    log('Catch Errorr -----------> ${error.toString()}');
     appStore.setLoading(false);
   }).catchError((e) {
     appStore.setLoading(false);
+    log('Catch Errorr -----------> ${e}');
     toast(e.toString());
   });
 }
@@ -846,6 +866,14 @@ Future<List<ProviderSubscriptionModel>> getPricingPlanList() async {
 
 Future<ProviderSubscriptionModel> saveSubscription(Map request) async {
   return ProviderSubscriptionModel.fromJson(await handleResponse(await buildHttpResponse('save-subscription', request: request, method: HttpMethodType.POST)));
+}
+
+Future<SubscriptionResponse> saveSubscriptionDetails(Map request) async {
+  return SubscriptionResponse.fromJson(await handleResponse(await buildHttpResponse('subscription-transactions', request: request, method: HttpMethodType.POST)));
+}
+
+Future<SubscriptionResponse> saveDealerDetails(Map request) async {
+  return SubscriptionResponse.fromJson(await handleResponse(await buildHttpResponse('level/transactions', request: request, method: HttpMethodType.POST)));
 }
 
 Future<List<ProviderSubscriptionModel>> getSubscriptionHistory({
@@ -1366,15 +1394,28 @@ Future<BaseResponseModel> saveServiceSlot(Map request) async {
 //endregion
 
 //region CommonFunctions
+// Future<Map<String, String>> getMultipartFields({required Map<String, dynamic> val}) async {
+//   Map<String, String> data = {};
+
+//   val.forEach((key, value) {
+//     data[key] = '$value';
+//   });
+
+//   return data;
+// }
+
 Future<Map<String, String>> getMultipartFields({required Map<String, dynamic> val}) async {
   Map<String, String> data = {};
 
   val.forEach((key, value) {
-    data[key] = '$value';
+    if (value != null) {
+      data[key] = value.toString();
+    }
   });
 
   return data;
 }
+
 
 Future<List<MultipartFile>> getMultipartImages({required List<File> files, required String name}) async {
   List<MultipartFile> multiPartRequest = [];

@@ -33,7 +33,7 @@ class _BookingFilterScreenState extends State<BookingFilterScreen> {
     DATE_RANGE,
     CUSTOMER,
     if (appStore.userType != USER_TYPE_HANDYMAN) PROVIDER.toLowerCase(),
-    if (appStore.userType != USER_TYPE_HANDYMAN || appStore.userType != USER_TYPE_PROVIDER) HANDYMAN.toLowerCase(),
+    // if (appStore.userType != USER_TYPE_HANDYMAN || appStore.userType != USER_TYPE_PROVIDER) HANDYMAN.toLowerCase(),
     BOOKING_STATUS,
     PAYMENT_TYPE,
     PAYMENT_STATUS,
@@ -233,7 +233,6 @@ class _BookingFilterScreenState extends State<BookingFilterScreen> {
                   color: context.primaryColor,
                   onTap: () {
                     filterStore.bookingStatus = [];
-
                     bookingStatusList.forEach((element) {
                       if (element.isSelected.validate()) {
                         filterStore.addToBookingStatusList(bookingStatusList: element.value.validate());

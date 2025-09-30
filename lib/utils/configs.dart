@@ -5,10 +5,13 @@ const APP_NAME = 'Viswam-Provider';
 const DEFAULT_LANGUAGE = 'en';
 
 // const primaryColor = Color(0xFF5F60B9);
-const primaryColor = Color(0xFFD4B549);
+// const primaryColor = Color(0xFFD4B549);
+// const primaryColor = Color(0xFFFFB300); yellow color
+const primaryColor = Color(0xFF000D33);
 
-/// Live Url
-const DOMAIN_URL = 'https://ghostwhite-vulture-972177.hostingersite.com'; 
+/// Live Url  
+// const DOMAIN_URL = 'https://ghostwhite-vulture-972177.hostingersite.com'; 
+const DOMAIN_URL = 'https://viswam9.com'; 
 
 const BASE_URL = "$DOMAIN_URL/api/";
 

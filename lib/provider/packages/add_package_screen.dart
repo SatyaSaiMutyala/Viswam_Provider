@@ -252,7 +252,7 @@ class _AddPackageScreenState extends State<AddPackageScreen> {
                   nextFocus: packagePriceFocus,
                   minLines: 3,
                   maxLines: 5,
-                  enableChatGPT: appConfigurationStore.chatGPTStatus,
+                  // enableChatGPT: appConfigurationStore.chatGPTStatus,
                   promptFieldInputDecorationChatGPT: inputDecoration(context).copyWith(
                     hintText: languages.writeHere,
                     fillColor: context.scaffoldBackgroundColor,

@@ -78,15 +78,23 @@ class ThemeSelectionDaiLogState extends State<ThemeSelectionDaiLog> {
                   currentIndex = val;
 
                   if (val == THEME_MODE_SYSTEM) {
-                    appStore.setDarkMode(context.platformBrightness() == Brightness.dark);
+                    // appStore.setDarkMode(context.platformBrightness() == Brightness.dark);
+                    appStore.setDarkMode(false);
+                    defaultToastBackgroundColor = Colors.black;
+                    defaultToastTextColor = Colors.white;
                   } else if (val == THEME_MODE_LIGHT) {
                     appStore.setDarkMode(false);
                     defaultToastBackgroundColor = Colors.black;
                     defaultToastTextColor = Colors.white;
-                  } else if (val == THEME_MODE_DARK) {
-                    appStore.setDarkMode(true);
-                    defaultToastBackgroundColor = Colors.white;
-                    defaultToastTextColor = Colors.black;
+                  }
+                   else if (val == THEME_MODE_DARK) {
+                    // appStore.setDarkMode(true);
+                    // defaultToastBackgroundColor = Colors.white;
+                    // defaultToastTextColor = Colors.black;
+                    
+                    appStore.setDarkMode(false);
+                    defaultToastBackgroundColor = Colors.black;
+                    defaultToastTextColor = Colors.white;
                   }
                   await setValue(THEME_MODE_INDEX, val);
 

@@ -97,7 +97,7 @@ class _ServiceDetailHeaderComponentState extends State<ServiceDetailHeaderCompon
                       padding: EdgeInsets.all(8),
                       onSelected: (selection) {
                         if (selection == 1) {
-                          AddServices(data: widget.serviceDetail).launch(context).then((value) {
+                          AddServices(data: widget.serviceDetail,).launch(context).then((value) {
                             if (value ?? false) {
                               init();
                               widget.voidCallback?.call();
